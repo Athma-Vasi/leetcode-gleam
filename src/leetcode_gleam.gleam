@@ -1,5 +1,5 @@
-import range_sum_of_bst_938
+import find_corresponding_node_1379
 
 pub fn main() -> Nil {
-  range_sum_of_bst_938.run()
+  find_corresponding_node_1379.run()
 }
