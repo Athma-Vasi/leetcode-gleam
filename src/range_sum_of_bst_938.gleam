@@ -3,6 +3,9 @@ import gleam/io
 import gleam/option.{type Option, None, Some}
 import tree_node.{type TreeNode, TreeNode}
 
+// T(n) = O(n)
+// S(n) = O(n)
+
 fn inorder_traverse(
   result: Int,
   curr: Option(TreeNode(Int)),

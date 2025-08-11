@@ -1,5 +1,5 @@
-import find_corresponding_node_1379
+import binary_tree_inorder_traversal_94
 
 pub fn main() -> Nil {
-  find_corresponding_node_1379.run()
+  binary_tree_inorder_traversal_94.run()
 }
