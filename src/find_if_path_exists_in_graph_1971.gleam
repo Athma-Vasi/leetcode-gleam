@@ -4,7 +4,9 @@ import gleam/pair
 import gleam/result
 import gleam/set.{type Set}
 
-fn build_graph(edges: List(#(Int, Int))) -> Dict(Int, Set(Int)) {
+// T(V,E) = O(E)
+// S(V,E) = O(V+E)
+fn build_graph(edges: List(#(Int, Int))) -> Dict(Int, List(Int)) {
   edges
   |> list.fold(from: dict.new(), with: fn(acc, curr) {
     let source = pair.first(curr)
@@ -12,13 +14,13 @@ fn build_graph(edges: List(#(Int, Int))) -> Dict(Int, Set(Int)) {
     let source_adjlist =
       acc
       |> dict.get(source)
-      |> result.unwrap(set.new())
-      |> set.insert(destination)
+      |> result.unwrap([])
+      |> list.prepend(destination)
     let dest_adjlist =
       acc
       |> dict.get(destination)
-      |> result.unwrap(set.new())
-      |> set.insert(source)
+      |> result.unwrap([])
+      |> list.prepend(source)
 
     acc
     |> dict.insert(source, source_adjlist)
@@ -26,8 +28,10 @@ fn build_graph(edges: List(#(Int, Int))) -> Dict(Int, Set(Int)) {
   })
 }
 
+// T(V,E) = O(V+E)
+// S(V,E) = O(V)
 fn depth_first_search(
-  graph: Dict(Int, Set(Int)),
+  graph: Dict(Int, List(Int)),
   visited: Set(Int),
   source: Int,
   destination: Int,
@@ -35,10 +39,9 @@ fn depth_first_search(
   source == destination
   || {
     let new_visited = visited |> set.insert(source)
-    let destinations = graph |> dict.get(source) |> result.unwrap(set.new())
+    let destinations = graph |> dict.get(source) |> result.unwrap([])
 
     destinations
-    |> set.to_list
     |> list.any(fn(new_source) {
       !set.contains(new_visited, new_source)
       && depth_first_search(graph, new_visited, new_source, destination)
