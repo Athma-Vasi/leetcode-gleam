@@ -1,5 +1,7 @@
-import binary_tree_inorder_traversal_94
+import find_if_path_exists_in_graph_1971
+import gleam/bool
+import gleam/io
 
-pub fn main() -> Nil {
-  binary_tree_inorder_traversal_94.run()
+pub fn main() {
+  find_if_path_exists_in_graph_1971.run() |> bool.to_string |> io.println
 }

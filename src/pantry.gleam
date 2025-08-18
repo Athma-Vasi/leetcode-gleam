@@ -6,6 +6,7 @@ const timeout: Int = 5000
 
 pub type Message {
   AddItem(item: String)
+  ListItems(reply_with: Subject(List(String)))
   TakeItem(reply_with: Subject(Result(String, Nil)), item: String)
   Shutdown
 }
@@ -20,14 +21,19 @@ fn handle_message(
     TakeItem(client, item) -> {
       case set.contains(pantry, item) {
         False -> {
-          process.send(client, Error(Nil))
+          actor.send(client, Error(Nil))
           actor.continue(pantry)
         }
         True -> {
-          process.send(client, Ok(item))
+          actor.send(client, Ok(item))
           actor.continue(set.delete(pantry, item))
         }
       }
+    }
+    ListItems(client) -> {
+      let items = pantry |> set.to_list
+      actor.send(client, items)
+      actor.continue(pantry)
     }
   }
 }
@@ -46,6 +52,10 @@ pub fn add_item(pantry: Subject(Message), item: String) -> Nil {
 pub fn take_item(pantry: Subject(Message), item: String) -> Result(String, Nil) {
   // process.call(pantry, timeout, TakeItem(_, item))
   actor.call(pantry, timeout, TakeItem(_, item))
+}
+
+pub fn list_items(pantry: Subject(Message)) {
+  actor.call(pantry, timeout, ListItems)
 }
 
 pub fn close(pantry: Subject(Message)) -> Nil {
