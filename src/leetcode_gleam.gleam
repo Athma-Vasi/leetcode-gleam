@@ -1,7 +1,7 @@
-import find_if_path_exists_in_graph_1971
-import gleam/bool
+import gleam/int
 import gleam/io
+import graph/find_the_town_judge_997
 
 pub fn main() {
-  find_if_path_exists_in_graph_1971.run() |> bool.to_string |> io.println
+  find_the_town_judge_997.run() |> int.to_string |> io.println
 }
