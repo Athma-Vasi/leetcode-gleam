@@ -65,7 +65,7 @@ pub fn run() {
   let s1 = 0
   let d1 = 2
   // True
-  let t1 = t(n1, e1, s1, d1)
+  let _t1 = t(n1, e1, s1, d1)
 
   let n2 = 6
   let e2 = [#(0, 1), #(0, 2), #(3, 5), #(5, 4), #(4, 3)]
