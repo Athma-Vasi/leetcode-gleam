@@ -42,15 +42,14 @@ fn find_nodes_without_in_degree(
   })
 }
 
-fn t(edges) {
-  let nodes = collect_nodes(edges)
-  let in_degree_table = create_in_degree_table(edges)
-  find_nodes_without_in_degree(in_degree_table, nodes)
+fn t(_n, edges) {
+  create_in_degree_table(edges)
+  |> find_nodes_without_in_degree(collect_nodes(edges))
 }
 
 pub fn run() {
-  let _n1 = 6
+  let n1 = 6
   let edges1 = [#(0, 1), #(0, 2), #(2, 5), #(3, 4), #(4, 2)]
-  let nodes = t(edges1)
+  let nodes = t(n1, edges1)
   echo nodes
 }
