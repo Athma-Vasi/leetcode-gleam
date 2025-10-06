@@ -1,5 +1,5 @@
-import graph/min_number_of_vertices_to_reach_all_nodes_1557
+import graph/find_the_town_judge_997
 
 pub fn main() {
-  min_number_of_vertices_to_reach_all_nodes_1557.run()
+  find_the_town_judge_997.run()
 }
