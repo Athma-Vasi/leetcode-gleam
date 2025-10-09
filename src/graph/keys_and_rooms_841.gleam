@@ -31,12 +31,12 @@ fn visit_rooms(rooms: List(List(Int)), stack: List(Int), visited: set.Set(Int)) 
   }
 }
 
+// T(n) = O(n + m) where n is the number of rooms and m is the total number of keys
+// S(n) = O(n)
 fn t(rooms: List(List(Int))) {
   visit_rooms(rooms, [0], set.new(int.compare))
 }
 
-// T(n) = O(n + m) where n is the number of rooms and m is the total number of keys
-// S(n) = O(n)
 pub fn run() {
   let rooms1 = [[1], [2], [3], []]
   let t1 = t(rooms1)
