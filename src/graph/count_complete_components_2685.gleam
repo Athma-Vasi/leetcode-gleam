@@ -6,7 +6,7 @@ import gleam/pair
 import gleam/result
 import gleam/set.{type Set}
 
-// incorrect, however the logic checks out
+// incorrect
 
 fn build_graph(edges: List(#(Int, Int))) -> Dict(Int, Set(Int)) {
   let graph_seed =
@@ -68,4 +68,5 @@ pub fn run() -> Nil {
   let n1 = 6
   let e1 = [#(0, 1), #(0, 2), #(1, 2), #(3, 4)]
   t(n1, e1) |> int.to_string |> io.println
+  // 3
 }
