@@ -1,7 +1,5 @@
-import graph/count_complete_components_2685
-import graph/find_the_town_judge_997
-import graph/keys_and_rooms_841
+import graph/find_city_with_smallest_number_of_neighbours_at_threshold_1334
 
 pub fn main() {
-  keys_and_rooms_841.run()
+  find_city_with_smallest_number_of_neighbours_at_threshold_1334.run()
 }
