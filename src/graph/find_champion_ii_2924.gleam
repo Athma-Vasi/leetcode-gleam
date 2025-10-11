@@ -27,7 +27,7 @@ fn find_champion(
     True, True | False, True -> -1
     // finished processing
     True, False -> result |> list.first |> result.unwrap(or: -1)
-    // process each team
+    // continue processing    
     False, False -> {
       case in_degree_table |> dict.get(n) {
         Ok(_in_degree) -> find_champion(in_degree_table, result, n - 1)
