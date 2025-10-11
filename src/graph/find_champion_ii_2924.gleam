@@ -3,7 +3,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 
-fn build_in_degree_table(edges: List(#(Int, Int))) {
+fn build_in_degree_table(edges: List(#(Int, Int))) -> dict.Dict(Int, Int) {
   edges
   |> list.fold(from: dict.new(), with: fn(acc, edge) {
     let #(_from, to) = edge
@@ -17,7 +17,11 @@ fn build_in_degree_table(edges: List(#(Int, Int))) {
   })
 }
 
-fn find_champion(in_degree_table, result: List(Int), n: Int) {
+fn find_champion(
+  in_degree_table: dict.Dict(Int, Int),
+  result: List(Int),
+  n: Int,
+) {
   case n < 0, list.length(result) > 1 {
     // multiple teams with zero indegree
     True, True | False, True -> -1
@@ -36,7 +40,7 @@ fn find_champion(in_degree_table, result: List(Int), n: Int) {
 
 // T(n) = O(n + e)
 // S(n) = O(n)
-fn t(n: Int, edges: List(#(Int, Int))) {
+fn t(n: Int, edges: List(#(Int, Int))) -> Int {
   build_in_degree_table(edges) |> find_champion([], n - 1)
 }
 
