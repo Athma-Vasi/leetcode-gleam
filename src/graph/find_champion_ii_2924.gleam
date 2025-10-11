@@ -21,7 +21,7 @@ fn find_champion(
   in_degree_table: dict.Dict(Int, Int),
   result: List(Int),
   n: Int,
-) {
+) -> Int {
   case n < 0, list.length(result) > 1 {
     // multiple teams with zero indegree
     True, True | False, True -> -1
