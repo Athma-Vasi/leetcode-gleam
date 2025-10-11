@@ -1,5 +1,5 @@
-import graph/find_city_with_smallest_number_of_neighbours_at_threshold_1334
+import graph/find_champion_ii_2924
 
 pub fn main() {
-  find_city_with_smallest_number_of_neighbours_at_threshold_1334.run()
+  find_champion_ii_2924.run()
 }

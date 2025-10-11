@@ -25,7 +25,7 @@ fn build_graph(
   })
 }
 
-fn t(n: Int, edges: List(#(Int, Int, Int)), distance_threshold: Int) {
+fn t(_n: Int, edges: List(#(Int, Int, Int)), _distance_threshold: Int) {
   build_graph(edges)
 }
 

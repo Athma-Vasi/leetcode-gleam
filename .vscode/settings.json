@@ -4,5 +4,7 @@
         "source.organizeImports": "explicit",
         "source.removeUnusedImports": "explicit",
         "source.sortImports": "explicit"
-    }
+    },
+    "editor.defaultFormatter": null,
+    "editor.fontLigatures": true
 }
