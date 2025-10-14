@@ -1,5 +1,5 @@
-import graph/find_champion_ii_2924
+import sliding_window/adjacent_increasing_subarrays_detection_i
 
 pub fn main() {
-  find_champion_ii_2924.run()
+  adjacent_increasing_subarrays_detection_i.run()
 }
