@@ -1,5 +1,5 @@
-import sliding_window/adjacent_increasing_subarrays_detection_i
+import subarray/adjacent_increasing_subarrays_detection_ii_3350
 
 pub fn main() {
-  adjacent_increasing_subarrays_detection_i.run()
+  adjacent_increasing_subarrays_detection_ii_3350.run()
 }
