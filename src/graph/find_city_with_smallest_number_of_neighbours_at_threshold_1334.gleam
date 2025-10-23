@@ -1,6 +1,7 @@
 import gleam/dict
 import gleam/list
 import gleam/option
+import gleamy/priority_queue
 
 fn build_graph(
   edges: List(#(Int, Int, Int)),

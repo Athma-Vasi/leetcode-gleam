@@ -1,5 +1,5 @@
-import subarray/adjacent_increasing_subarrays_detection_ii_3350
+import stack/check_if_digits_are_equal_after_ops_i_3461
 
 pub fn main() {
-  adjacent_increasing_subarrays_detection_ii_3350.run()
+  check_if_digits_are_equal_after_ops_i_3461.run()
 }
