@@ -13,12 +13,13 @@ fn get_first_rest(str: String) {
 
 fn check(s: String, prev: option.Option(String), result: String) {
   case s, prev {
-    "", option.None -> ""
-    "", option.Some(_prev) -> result
+    // end condition
+    "", option.None | "", option.Some(_prev) -> result
 
     // first iteration
     str, option.None -> {
       let #(first, rest) = get_first_rest(str)
+      // continue checking with first character as previous
       check(rest, option.Some(first), result)
     }
 
@@ -27,6 +28,7 @@ fn check(s: String, prev: option.Option(String), result: String) {
       let #(first, rest_str) = get_first_rest(str)
 
       case int.parse(prev), int.parse(first) {
+        // both numbers are valid
         Ok(prev), Ok(first) -> {
           let num_str =
             int.to_float(prev + first)
@@ -34,15 +36,16 @@ fn check(s: String, prev: option.Option(String), result: String) {
             |> result.unwrap(0.0)
             |> float.truncate
             |> int.to_string
-          echo num_str
 
+          // continue checking with current number as previous
           check(
             rest_str,
-            option.Some(num_str),
+            first |> int.to_string |> option.Some,
             result |> string.append(num_str),
           )
         }
 
+        // either number is invalid
         Error(Nil), Error(Nil) | Error(Nil), Ok(_first) | Ok(_prev), Error(Nil) -> {
           check(rest_str, option.None, result)
         }
@@ -64,14 +67,18 @@ fn operate(s: String) {
   }
 }
 
+// T(n, m) = O(m) where m is the length of the string s 
+// S(n, m) = O(m) where m is the length of the string s
 fn t(s: String) {
-  //   operate(s)
-  check(s, option.None, "")
+  operate(s)
 }
 
 pub fn run() {
   let s1 = "3902"
-  t(s1)
   // true
-  //   echo r1
+  echo t(s1)
+
+  let s2 = "34789"
+  // false
+  echo t(s2)
 }
