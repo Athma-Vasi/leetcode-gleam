@@ -47,6 +47,7 @@ fn check(s: String, prev: option.Option(String), result: String) {
 
         // either number is invalid
         Error(Nil), Error(Nil) | Error(Nil), Ok(_first) | Ok(_prev), Error(Nil) -> {
+          // just continue without operation
           check(rest_str, option.None, result)
         }
       }
@@ -67,8 +68,8 @@ fn operate(s: String) {
   }
 }
 
-// T(n, m) = O(m) where m is the length of the string s 
-// S(n, m) = O(m) where m is the length of the string s
+// T(n) = O(n + (n - 1) + ... + 2) = O(n^2) where n is length of string
+// S(n) = O(n)
 fn t(s: String) {
   operate(s)
 }
@@ -81,4 +82,8 @@ pub fn run() {
   let s2 = "34789"
   // false
   echo t(s2)
+
+  let s3 = "1234567890"
+  // true
+  echo t(s3)
 }
