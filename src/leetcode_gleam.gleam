@@ -1,5 +1,5 @@
-import stack/check_if_digits_are_equal_after_ops_i_3461
+import stack/minimum_time_to_make_rope_colorful_1578
 
 pub fn main() {
-  check_if_digits_are_equal_after_ops_i_3461.run()
+  minimum_time_to_make_rope_colorful_1578.run()
 }
