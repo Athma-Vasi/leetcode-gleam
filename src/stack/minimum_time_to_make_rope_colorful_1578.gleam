@@ -48,9 +48,10 @@ fn process_rope(
       let #(curr_removal_time, rest_times) =
         get_first_and_rest_times(needed_time)
 
-      // found duplicate colour
       case prev_colour == curr_colour {
+        // found duplicate colour
         True -> {
+          // add the smaller removal time
           let new_min_time = case prev_removal_time < curr_removal_time {
             True -> min_time + prev_removal_time
             False -> min_time + curr_removal_time
