@@ -1,5 +1,5 @@
-import stack/minimum_time_to_make_rope_colorful_1578
+import subsequence/unique_length_3_palindromic_subsequences_1930
 
 pub fn main() {
-  minimum_time_to_make_rope_colorful_1578.run()
+  unique_length_3_palindromic_subsequences_1930.run()
 }
