@@ -28,4 +28,8 @@ pub fn run() {
   let n1 = [1, 2, 3, 4]
   // 3
   echo t(n1, 3)
+
+  let n2 = [3, 6, 9]
+  // 0
+  echo t(n2, 3)
 }
