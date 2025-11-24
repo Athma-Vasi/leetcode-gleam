@@ -1,5 +1,5 @@
-import misc/max_number_of_ops_to_move_ones_to_the_end_3228
+import misc/greatest_sum_divisible_by_three_1262
 
 pub fn main() {
-  max_number_of_ops_to_move_ones_to_the_end_3228.run()
+  greatest_sum_divisible_by_three_1262.run()
 }
