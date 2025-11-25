@@ -1,5 +1,5 @@
-import misc/greatest_sum_divisible_by_three_1262
+import binary/binary_prefix_divisible_by_5_1018
 
 pub fn main() {
-  greatest_sum_divisible_by_three_1262.run()
+  binary_prefix_divisible_by_5_1018.run()
 }
