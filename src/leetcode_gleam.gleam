@@ -1,5 +1,5 @@
-import binary/binary_prefix_divisible_by_5_1018
+import misc/smallest_integer_divisible_by_k_1015
 
 pub fn main() {
-  binary_prefix_divisible_by_5_1018.run()
+  smallest_integer_divisible_by_k_1015.run()
 }
