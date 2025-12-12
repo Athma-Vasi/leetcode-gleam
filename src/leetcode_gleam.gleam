@@ -1,5 +1,5 @@
-import misc/group_anagrams_49
+import misc/top_k_frequent_elements_347
 
 pub fn main() {
-  group_anagrams_49.run()
+  top_k_frequent_elements_347.run()
 }
