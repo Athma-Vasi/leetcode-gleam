@@ -1,5 +1,5 @@
-import trie/implement_trie_208
+import misc/group_anagrams_49
 
 pub fn main() {
-  implement_trie_208.run()
+  group_anagrams_49.run()
 }
