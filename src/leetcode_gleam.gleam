@@ -1,5 +1,5 @@
-import misc/top_k_frequent_elements_347
+import misc/valid_sudoku_36
 
 pub fn main() {
-  top_k_frequent_elements_347.run()
+  valid_sudoku_36.run()
 }
