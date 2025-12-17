@@ -1,7 +1,6 @@
 import gleam/dict
 import gleam/int
 import gleam/list
-import gleam/option
 import gleam/result
 import gleam/set
 
@@ -30,34 +29,32 @@ type BoxesTable =
 // A Sudoku board is divided into 9 boxes, each 3×3.
 // Box assignment: floor(row / 3) × 3 + floor(col / 3)
 fn return_box(row_index: Int, col_index: Int) -> Boxes {
-  case row_index, col_index {
-    0, 0 | 0, 1 | 0, 2 | 1, 0 | 1, 1 | 1, 2 | 2, 0 | 2, 1 | 2, 2 -> Box1
-    0, 3 | 0, 4 | 0, 5 | 1, 3 | 1, 4 | 1, 5 | 2, 3 | 2, 4 | 2, 5 -> Box2
-    0, 6 | 0, 7 | 0, _ | 1, 6 | 1, 7 | 1, _ | 2, 6 | 2, 7 | 2, _ -> Box3
-    3, 0 | 3, 1 | 3, 2 | 4, 0 | 4, 1 | 4, 2 | 5, 0 | 5, 1 | 5, 2 -> Box4
-    3, 3 | 3, 4 | 3, 5 | 4, 3 | 4, 4 | 4, 5 | 5, 3 | 5, 4 | 5, 5 -> Box5
-    3, 6 | 3, 7 | 3, _ | 4, 6 | 4, 7 | 4, _ | 5, 6 | 5, 7 | 5, _ -> Box6
-    6, 0 | 6, 1 | 6, 2 | 7, 0 | 7, 1 | 7, 2 | _, 0 | _, 1 | _, 2 -> Box7
-    6, 3 | 6, 4 | 6, 5 | 7, 3 | 7, 4 | 7, 5 | _, 3 | _, 4 | _, 5 -> Box8
-    6, 6 | 6, 7 | 6, _ | 7, 6 | 7, 7 | 7, _ | _, 6 | _, 7 | _, _ -> Box9
-  }
-}
+  let box_row = int.floor_divide(row_index, 3) |> result.unwrap(or: 0)
+  let box_col = int.floor_divide(col_index, 3) |> result.unwrap(or: 0)
 
-// Insert cell_num into the set associated with key.
-// On first occurrence (None): create a new set AND insert immediately.
-// On subsequent occurrences (Some): add to existing set.
-fn update_table(
-  key: key,
-  table: dict.Dict(key, set.Set(Int)),
-  cell_num: Int,
-) -> dict.Dict(key, set.Set(Int)) {
-  table
-  |> dict.upsert(update: key, with: fn(set_maybe) {
-    case set_maybe {
-      option.None -> set.new() |> set.insert(cell_num)
-      option.Some(s) -> s |> set.insert(cell_num)
-    }
-  })
+  case box_row, box_col {
+    0, 0 -> Box1
+    0, 1 -> Box2
+    0, 2 -> Box3
+    1, 0 -> Box4
+    1, 1 -> Box5
+    1, 2 -> Box6
+    2, 0 -> Box7
+    2, 1 -> Box8
+    2, 2 -> Box9
+    _, _ -> Box9
+  }
+  // case row_index, col_index {
+  //   0, 0 | 0, 1 | 0, 2 | 1, 0 | 1, 1 | 1, 2 | 2, 0 | 2, 1 | 2, 2 -> Box1
+  //   0, 3 | 0, 4 | 0, 5 | 1, 3 | 1, 4 | 1, 5 | 2, 3 | 2, 4 | 2, 5 -> Box2
+  //   0, 6 | 0, 7 | 0, _ | 1, 6 | 1, 7 | 1, _ | 2, 6 | 2, 7 | 2, _ -> Box3
+  //   3, 0 | 3, 1 | 3, 2 | 4, 0 | 4, 1 | 4, 2 | 5, 0 | 5, 1 | 5, 2 -> Box4
+  //   3, 3 | 3, 4 | 3, 5 | 4, 3 | 4, 4 | 4, 5 | 5, 3 | 5, 4 | 5, 5 -> Box5
+  //   3, 6 | 3, 7 | 3, _ | 4, 6 | 4, 7 | 4, _ | 5, 6 | 5, 7 | 5, _ -> Box6
+  //   6, 0 | 6, 1 | 6, 2 | 7, 0 | 7, 1 | 7, 2 | _, 0 | _, 1 | _, 2 -> Box7
+  //   6, 3 | 6, 4 | 6, 5 | 7, 3 | 7, 4 | 7, 5 | _, 3 | _, 4 | _, 5 -> Box8
+  //   6, 6 | 6, 7 | 6, _ | 7, 6 | 7, 7 | 7, _ | _, 6 | _, 7 | _, _ -> Box9
+  // }
 }
 
 // T(n) = O(1) - exactly 81 cells processed
@@ -80,6 +77,7 @@ fn check_validity(board: List(List(String))) -> Bool {
       row
       |> list.index_fold(from: acc, with: fn(acc, cell_str, col_index) {
         let #(is_valid, rows_table, cols_table, boxes_table) = acc
+
         case is_valid, int.parse(cell_str) {
           // Early exit: if we already found a duplicate, keep returning False
           False, Error(Nil) | False, Ok(_cell_num) -> #(
@@ -125,10 +123,12 @@ fn check_validity(board: List(List(String))) -> Bool {
               // No duplicate: record this number in row, column, and box
               False, False, False -> #(
                 is_valid,
-                update_table(row_index, rows_table, cell_num),
-                update_table(col_index, cols_table, cell_num),
-                return_box(row_index, col_index)
-                  |> update_table(boxes_table, cell_num),
+                rows_table
+                  |> dict.insert(row_index, row_set |> set.insert(cell_num)),
+                cols_table
+                  |> dict.insert(col_index, col_set |> set.insert(cell_num)),
+                boxes_table
+                  |> dict.insert(box, box_set |> set.insert(cell_num)),
               )
             }
           }
@@ -151,7 +151,7 @@ pub fn run() {
     [".", ".", ".", "4", "1", "9", ".", ".", "5"],
     [".", ".", ".", ".", "8", ".", ".", "7", "9"],
   ]
-  // true
+  // True
   echo check_validity(b1)
 
   let b2 = [
@@ -165,6 +165,6 @@ pub fn run() {
     [".", ".", ".", "4", "1", "9", ".", ".", "5"],
     [".", ".", ".", ".", "8", ".", ".", "7", "9"],
   ]
-  // false
+  // False
   echo check_validity(b2)
 }
