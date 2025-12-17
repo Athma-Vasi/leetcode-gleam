@@ -29,19 +29,18 @@ type BoxesTable =
 // A Sudoku board is divided into 9 boxes, each 3×3.
 // Box assignment: floor(row / 3) × 3 + floor(col / 3)
 fn return_box(row_index: Int, col_index: Int) -> Boxes {
-  let box_row = int.floor_divide(row_index, 3) |> result.unwrap(or: 0)
-  let box_col = int.floor_divide(col_index, 3) |> result.unwrap(or: 0)
+  let box_row = int.floor_divide(row_index, 3) |> result.unwrap(or: 2)
+  let box_col = int.floor_divide(col_index, 3) |> result.unwrap(or: 2)
 
   case box_row, box_col {
     0, 0 -> Box1
     0, 1 -> Box2
-    0, 2 -> Box3
+    0, _ -> Box3
     1, 0 -> Box4
     1, 1 -> Box5
-    1, 2 -> Box6
-    2, 0 -> Box7
-    2, 1 -> Box8
-    2, 2 -> Box9
+    1, _ -> Box6
+    _, 0 -> Box7
+    _, 1 -> Box8
     _, _ -> Box9
   }
   // case row_index, col_index {
