@@ -1,5 +1,5 @@
-import two_pointers/two_sum_ii_input_array_is_sorted_167
+import misc/delete_columns_to_make_sorted_944
 
 pub fn main() {
-  two_sum_ii_input_array_is_sorted_167.run()
+  delete_columns_to_make_sorted_944.run()
 }

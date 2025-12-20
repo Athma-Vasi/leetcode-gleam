@@ -15,7 +15,7 @@ fn two_sum(
     [], True | [], False | _, True -> result
 
     nums, False -> {
-      let left_num = nums |> list. |> result.unwrap(or: 0)
+      let left_num = nums |> list.first |> result.unwrap(or: 0)
       let right_num = nums |> list.last |> result.unwrap(or: 0)
 
       case left_num + right_num == target {
