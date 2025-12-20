@@ -25,16 +25,6 @@ fn make_columns_table(strings: List(String)) -> dict.Dict(Int, String) {
   })
 }
 
-// Extract column strings from the table as a list
-fn grab_column_strings(columns_table: dict.Dict(Int, String)) -> List(String) {
-  columns_table
-  |> dict.to_list
-  |> list.fold(from: [], with: fn(strings_acc, tuple) {
-    let #(_index, string) = tuple
-    strings_acc |> list.append([string])
-  })
-}
-
 // Check if a column string is sorted in lexicographic (ascending) order
 fn check_if_sorted(string: String) {
   let #(is_sorted, _prev_grapheme) =
@@ -69,7 +59,7 @@ fn count_lexicographically_unsorted(strings: List(String)) -> Int {
 // S(n) = O(n * m) for the columns table
 fn t(strings: List(String)) {
   make_columns_table(strings)
-  |> grab_column_strings
+  |> dict.values
   |> count_lexicographically_unsorted
 }
 
