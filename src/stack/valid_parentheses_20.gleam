@@ -6,6 +6,8 @@ import gleam/string
 // - Push opening brackets onto `stack`.
 // - On a closing bracket, pop the top opening and check that it matches.
 // - At the end, the stack should be empty for a valid string.
+// T(n) = O(n)
+// S(n) = O(n)
 fn determine_validity(
   validity: Bool,
   stack: List(String),
