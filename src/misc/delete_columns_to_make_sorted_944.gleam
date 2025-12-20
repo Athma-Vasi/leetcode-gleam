@@ -26,7 +26,7 @@ fn make_columns_table(strings: List(String)) -> dict.Dict(Int, String) {
 }
 
 // Extract column strings from the table as a list
-fn make_column_strings(columns_table: dict.Dict(Int, String)) -> List(String) {
+fn grab_column_strings(columns_table: dict.Dict(Int, String)) -> List(String) {
   columns_table
   |> dict.to_list
   |> list.fold(from: [], with: fn(strings_acc, tuple) {
@@ -69,7 +69,7 @@ fn count_lexicographically_unsorted(strings: List(String)) -> Int {
 // S(n) = O(n * m) for the columns table
 fn t(strings: List(String)) {
   make_columns_table(strings)
-  |> make_column_strings
+  |> grab_column_strings
   |> count_lexicographically_unsorted
 }
 
