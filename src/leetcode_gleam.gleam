@@ -1,5 +1,5 @@
-import stack/valid_parentheses_20
+import stack/evaluate_reverse_polish_notation_150
 
 pub fn main() {
-  valid_parentheses_20.run()
+  evaluate_reverse_polish_notation_150.run()
 }
