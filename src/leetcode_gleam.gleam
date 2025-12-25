@@ -1,5 +1,5 @@
-import misc/maximize_happiness_of_selected_children_2075
+import misc/maximize_happiness_of_selected_children_3075
 
 pub fn main() {
-  maximize_happiness_of_selected_children_2075.run()
+  maximize_happiness_of_selected_children_3075.run()
 }
