@@ -1,8 +1,15 @@
 import gleam/int
 import gleam/list
 
-fn collect_maximums(happiness: List(Int), k: Int, count: Int, result: List(Int)) {
-  case count == k {
+// Pick the next happiest child, apply the diminishing penalty, and recurse
+// until we have chosen k children.
+fn collect_maximums(
+  happiness: List(Int),
+  k: Int,
+  penalty: Int,
+  result: List(Int),
+) {
+  case penalty == k {
     True -> result
     False -> {
       let #(happy, rest_happiness) =
@@ -15,7 +22,10 @@ fn collect_maximums(happiness: List(Int), k: Int, count: Int, result: List(Int))
           }
         })
 
-      collect_maximums(rest_happiness, k, count + 1, [happy - count, ..result])
+      collect_maximums(rest_happiness, k, penalty + 1, [
+        happy - penalty,
+        ..result
+      ])
     }
   }
 }
