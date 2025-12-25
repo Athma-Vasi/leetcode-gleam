@@ -1,5 +1,5 @@
-import stack/evaluate_reverse_polish_notation_150
+import misc/maximize_happiness_of_selected_children_2075
 
 pub fn main() {
-  evaluate_reverse_polish_notation_150.run()
+  maximize_happiness_of_selected_children_2075.run()
 }
