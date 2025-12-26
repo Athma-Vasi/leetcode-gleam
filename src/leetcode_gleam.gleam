@@ -1,5 +1,5 @@
-import misc/maximize_happiness_of_selected_children_3075
+import prefix_suffix/minimum_penalty_for_a_shop_2483
 
 pub fn main() {
-  maximize_happiness_of_selected_children_3075.run()
+  minimum_penalty_for_a_shop_2483.run()
 }
