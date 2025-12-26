@@ -4,29 +4,31 @@ import gleam/string
 
 // Builds prefix array: count of 'N' (dissatisfied customers) before each hour
 // Example: "YYNY" -> [0, 0, 0, 1, 1]
-// Index i represents the penalty if shop opens after hour i
-fn create_prefixes(visits: List(String)) -> List(Int) {
+fn create_prefixes(visits: String) -> List(Int) {
+  let initial = #(0, [0])
   let #(_prev, prefixes) =
     visits
-    |> list.fold(from: #(0, [0]), with: fn(acc, visit) {
+    |> string.to_graphemes
+    |> list.fold(from: initial, with: fn(acc, visit) {
       let #(prev_penalty, prefixes) = acc
       case visit {
-        "N" -> #(prev_penalty + 1, prefixes |> list.append([prev_penalty + 1]))
+        "N" -> #(prev_penalty + 1, [prev_penalty + 1, ..prefixes])
         // "Y" - no additional penalty
-        _ -> #(prev_penalty, prefixes |> list.append([prev_penalty]))
+        _ -> #(prev_penalty, [prev_penalty, ..prefixes])
       }
     })
 
-  prefixes
+  list.reverse(prefixes)
 }
 
 // Builds suffix array: count of 'Y' (satisfied customers) from each hour onwards
 // Example: "YYNY" -> [3, 2, 2, 1, 0]
-// Index i represents missed customers if shop closes before hour i
-fn create_suffixes(visits: List(String)) -> List(Int) {
+fn create_suffixes(visits: String) -> List(Int) {
+  let initial = #(0, [0])
   let #(_next, suffixes) =
     visits
-    |> list.fold_right(from: #(0, [0]), with: fn(acc, visit) {
+    |> string.to_graphemes
+    |> list.fold_right(from: initial, with: fn(acc, visit) {
       let #(next_penalty, suffixes) = acc
       case visit {
         "Y" -> #(next_penalty + 1, [next_penalty + 1, ..suffixes])
@@ -39,7 +41,6 @@ fn create_suffixes(visits: List(String)) -> List(Int) {
 }
 
 // Iterates through all hours and collects (hour, penalty) pairs where penalty improves
-// Uses strict > comparison to track only hours with better penalties
 // Maintains list of all improving penalties in descending hour order
 fn find_monotonically_decreasing_minimums(
   minimums: List(#(Int, Int)),
@@ -51,11 +52,9 @@ fn find_monotonically_decreasing_minimums(
   case prefixes, suffixes {
     [], [] | [], _ | _, [] -> minimums
 
-    [prefix, ..rest_prefixes], [suffix, ..rest_suffixes] -> {
+    [prefix, ..rest_prefixes], [suffix, ..rest_suffixes] ->
       // Total penalty at hour = N's before hour + Y's from hour onwards
-      let penalty = prefix + suffix
-
-      case penalty > minimum_penalty {
+      case prefix + suffix > minimum_penalty {
         True ->
           // Skip this hour, penalty is not better
           find_monotonically_decreasing_minimums(
@@ -65,17 +64,17 @@ fn find_monotonically_decreasing_minimums(
             rest_prefixes,
             rest_suffixes,
           )
+
         False ->
           // Found a better penalty, record this hour
           find_monotonically_decreasing_minimums(
-            [#(index, penalty), ..minimums],
-            penalty,
+            [#(index, prefix + suffix), ..minimums],
+            prefix + suffix,
             index + 1,
             rest_prefixes,
             rest_suffixes,
           )
       }
-    }
   }
 }
 
@@ -103,14 +102,12 @@ fn pick_smallest(minimums: List(#(Int, Int))) -> Int {
 // Time complexity: O(n) - three linear passes through input
 // Space complexity: O(n) - storage for prefix and suffix arrays
 fn find_minimum_penalty(customer_visits: String) -> Int {
-  let visits = string.to_graphemes(customer_visits)
-
   find_monotonically_decreasing_minimums(
     [],
     999_999_999,
     0,
-    create_prefixes(visits),
-    create_suffixes(visits),
+    create_prefixes(customer_visits),
+    create_suffixes(customer_visits),
   )
   |> pick_smallest
 }
