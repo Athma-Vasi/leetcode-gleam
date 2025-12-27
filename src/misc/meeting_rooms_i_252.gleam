@@ -40,10 +40,8 @@ fn attend_meetings_without_conflict(intervals: List(Interval)) -> Bool {
   let initial_interval = #(-1, -1)
   let overlaps =
     sort_ascending(intervals) |> check_for_overlap(initial_interval, False)
-  case overlaps {
-    True -> False
-    False -> True
-  }
+
+  !overlaps
 }
 
 pub fn run() {
