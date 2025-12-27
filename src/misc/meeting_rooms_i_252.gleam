@@ -34,6 +34,8 @@ fn check_for_overlap(
 }
 
 // Returns True if all meetings are non-overlapping, False otherwise
+// T(n) = O(n * log(n))
+// S(n) = O(n)
 fn attend_meetings_without_conflict(intervals: List(Interval)) -> Bool {
   let initial_interval = #(-1, -1)
   let overlaps =
