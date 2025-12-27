@@ -1,5 +1,5 @@
-import prefix_suffix/minimum_penalty_for_a_shop_2483
+import misc/meeting_rooms_i_252
 
 pub fn main() {
-  minimum_penalty_for_a_shop_2483.run()
+  meeting_rooms_i_252.run()
 }
