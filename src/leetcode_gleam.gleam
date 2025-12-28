@@ -1,5 +1,5 @@
-import misc/meeting_rooms_i_252
+import matrix/count_negative_numbers_in_sorted_matrix_1351
 
 pub fn main() {
-  meeting_rooms_i_252.run()
+  count_negative_numbers_in_sorted_matrix_1351.run()
 }
