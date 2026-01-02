@@ -1,5 +1,5 @@
-import matrix/count_negative_numbers_in_sorted_matrix_1351
+import subarray/n_repeated_element_in_size_2n_array_961
 
 pub fn main() {
-  count_negative_numbers_in_sorted_matrix_1351.run()
+  n_repeated_element_in_size_2n_array_961.run()
 }
