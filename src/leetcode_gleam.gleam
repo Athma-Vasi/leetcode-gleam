@@ -1,5 +1,5 @@
-import subarray/n_repeated_element_in_size_2n_array_961
+import subarray/longest_substring_without_duplicates_3
 
 pub fn main() {
-  n_repeated_element_in_size_2n_array_961.run()
+  longest_substring_without_duplicates_3.run()
 }
