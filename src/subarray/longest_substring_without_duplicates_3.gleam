@@ -3,7 +3,7 @@ import gleam/set
 import gleam/string
 
 // T(n) = O(n)
-// S(n, k) = O(k) where k is max size of uniques
+// S(n, k) = O(k) where k is size of uniques
 fn slide_window(
   longest_uniques_size: Int,
   uniques_window: set.Set(String),
