@@ -1,5 +1,5 @@
-import graph/number_of_islands_200
+import graph/max_area_of_island_695
 
 pub fn main() {
-  number_of_islands_200.run()
+  max_area_of_island_695.run()
 }
