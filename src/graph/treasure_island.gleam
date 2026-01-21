@@ -501,12 +501,12 @@ fn plot_course(grid: Grid) -> AdjacencyList {
 /// Note: Each list.append operation is O(queue_length), making this O(neighbors × queue_length).
 /// With at most 4 neighbors, this is O(queue_length) per call.
 fn add_directions(
-  rest_queue: ItineraryQueue,
+  rest_itinerary: ItineraryQueue,
   paths: List(CellCoordinate),
   new_distance: Int,
 ) {
   paths
-  |> list.fold(from: rest_queue, with: fn(queue, path) {
+  |> list.fold(from: rest_itinerary, with: fn(queue, path) {
     queue |> list.append([#(path, new_distance)])
   })
 }
@@ -522,13 +522,13 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
     // Queue exhausted without finding treasure - no valid path exists
     [] -> Error(Nil)
 
-    [first, ..rest] -> {
+    [first, ..rest_itinerary] -> {
       // Dequeue next cell to explore with its accumulated distance
       let #(cell_coordinate, distance) = first
 
       case graph |> dict.get(cell_coordinate) {
         // Cell already visited or doesn't exist in graph - skip it
-        Error(Nil) -> set_sail(graph, rest)
+        Error(Nil) -> set_sail(graph, rest_itinerary)
 
         // Cell found in graph - process it
         Ok(path_results) -> {
@@ -547,7 +547,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
 
           case cell_content_result {
             // Malformed cell content - skip and continue
-            Error(Nil) -> set_sail(updated_graph, rest)
+            Error(Nil) -> set_sail(updated_graph, rest_itinerary)
 
             Ok(cell_content) ->
               case cell_content {
@@ -555,7 +555,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                 Treasure -> Ok(distance)
 
                 // Should never reach hazard (filtered during graph construction)
-                Hazard -> set_sail(updated_graph, rest)
+                Hazard -> set_sail(updated_graph, rest_itinerary)
 
                 // Navigable water cell - enqueue all unvisited neighbors
                 Water -> {
@@ -567,41 +567,45 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                   {
                     // Isolated cell with no neighbors
                     Error(Nil), Error(Nil), Error(Nil), Error(Nil) ->
-                      set_sail(updated_graph, rest)
+                      set_sail(updated_graph, rest_itinerary)
 
                     // Only left neighbor
                     Error(Nil), Error(Nil), Error(Nil), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest |> add_directions([left_path], new_distance),
+                        rest_itinerary
+                          |> add_directions([left_path], new_distance),
                       )
 
                     // Only down neighbor
                     Error(Nil), Error(Nil), Ok(down_path), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> add_directions([down_path], new_distance),
+                        rest_itinerary
+                          |> add_directions([down_path], new_distance),
                       )
 
                     // Only right neighbor
                     Error(Nil), Ok(right_path), Error(Nil), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> add_directions([right_path], new_distance),
+                        rest_itinerary
+                          |> add_directions([right_path], new_distance),
                       )
 
                     // Only top neighbor
                     Ok(top_path), Error(Nil), Error(Nil), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> add_directions([top_path], new_distance),
+                        rest_itinerary
+                          |> add_directions([top_path], new_distance),
                       )
 
                     // Down and left neighbors
                     Error(Nil), Error(Nil), Ok(down_path), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [down_path, left_path],
                             new_distance,
@@ -612,7 +616,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Error(Nil), Ok(right_path), Error(Nil), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [right_path, left_path],
                             new_distance,
@@ -623,7 +627,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Error(Nil), Ok(right_path), Ok(down_path), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [right_path, down_path, left_path],
                             new_distance,
@@ -634,7 +638,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Error(Nil), Ok(right_path), Ok(down_path), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [right_path, down_path],
                             new_distance,
@@ -645,7 +649,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Error(Nil), Error(Nil), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions([top_path, left_path], new_distance),
                       )
 
@@ -653,7 +657,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Error(Nil), Ok(down_path), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [top_path, down_path, left_path],
                             new_distance,
@@ -664,7 +668,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Error(Nil), Ok(down_path), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions([top_path, down_path], new_distance),
                       )
 
@@ -672,7 +676,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Ok(right_path), Error(Nil), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [top_path, right_path],
                             new_distance,
@@ -683,7 +687,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Ok(right_path), Error(Nil), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [top_path, right_path, left_path],
                             new_distance,
@@ -694,7 +698,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Ok(right_path), Ok(down_path), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [top_path, right_path, down_path],
                             new_distance,
@@ -705,7 +709,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                     Ok(top_path), Ok(right_path), Ok(down_path), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest
+                        rest_itinerary
                           |> add_directions(
                             [top_path, right_path, down_path, left_path],
                             new_distance,
