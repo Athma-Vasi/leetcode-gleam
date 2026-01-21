@@ -1,35 +1,69 @@
+//// Treasure Island Pathfinding
+////
+//// Solves the shortest path problem on a 2D grid from top-left (0,0) to a treasure.
+//// Uses BFS (breadth-first search) to guarantee the shortest distance.
+//// 
+//// Grid cells can be:
+//// - Water: navigable safe passage
+//// - Treasure: the goal destination
+//// - Hazard: impassable obstacle
+////
+//// Algorithm approach:
+//// 1. Build adjacency graph of navigable cells (plot_course)
+//// 2. Perform BFS from start to treasure (set_sail)
+//// 3. Return distance or -1 if unreachable
+////
+//// Time Complexity: O(rows × cols)
+//// Space Complexity: O(rows × cols)
+
 import gleam/dict
+import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
+import gleam/string
 
+/// Represents the content of a grid cell in the treasure map.
+/// - Treasure: The goal location to reach
+/// - Water: Navigable safe passage
+/// - Hazard: Impassable obstacle (rocks, shallow waters, etc.)
 pub type CellContent {
   Treasure
   Water
   Hazard
 }
 
+/// Grid of cell contents representing the treasure map.
+/// Organized as rows (outer list) of columns (inner lists).
 type Grid =
   List(List(CellContent))
 
+/// Location in the grid using zero-indexed (row, column) coordinates.
 type CellCoordinate =
   #(Int, Int)
 
+/// Result indicating presence (Ok) or absence (Error) of a neighbor above.
 type TopPathResult =
   Result(CellCoordinate, Nil)
 
+/// Result indicating presence (Ok) or absence (Error) of a neighbor to the right.
 type RightPathResult =
   TopPathResult
 
+/// Result indicating presence (Ok) or absence (Error) of a neighbor below.
 type DownPathResult =
   RightPathResult
 
+/// Result indicating presence (Ok) or absence (Error) of a neighbor to the left.
 type LeftPathResult =
   DownPathResult
 
+/// Result wrapping the content of a cell.
 type CellContentResult =
   Result(CellContent, Nil)
 
+/// Adjacency list mapping each navigable cell to its content and four neighbors.
+/// Tuple structure: (content, top, right, down, left)
 type AdjacencyList =
   dict.Dict(
     CellCoordinate,
@@ -42,9 +76,19 @@ type AdjacencyList =
     ),
   )
 
+type Distance =
+  Int
+
+type ItineraryQueue =
+  List(#(CellCoordinate, Distance))
+
+/// Temporary storage for the previous row's cell contents during graph construction.
+/// Allows efficient lookup of top neighbors without scanning the entire grid.
 type PrevRowTable =
   dict.Dict(CellCoordinate, CellContent)
 
+/// Links the current cell to its top neighbor in the adjacency graph.
+/// Creates or updates the current cell's top edge.
 fn update_current_cells_top_path(
   graph,
   curr_cell_coordinate,
@@ -85,6 +129,8 @@ fn update_current_cells_top_path(
   })
 }
 
+/// Links the current cell to its left neighbor in the adjacency graph.
+/// Creates or updates the current cell's left edge.
 fn update_current_cells_left_path(
   graph,
   curr_cell_coordinate,
@@ -125,6 +171,8 @@ fn update_current_cells_left_path(
   })
 }
 
+/// Establishes bidirectional connection by updating the left cell's right edge.
+/// Called when current cell has a navigable left neighbor.
 fn update_left_cells_right_path(
   graph,
   left_cell_coordinate,
@@ -165,6 +213,8 @@ fn update_left_cells_right_path(
   })
 }
 
+/// Establishes bidirectional connection by updating the top cell's down edge.
+/// Called when current cell has a navigable top neighbor.
 fn update_top_cells_down_path(
   graph,
   top_cell_coordinate,
@@ -205,6 +255,8 @@ fn update_top_cells_down_path(
   })
 }
 
+/// Convenience function to connect current cell to both left and top neighbors.
+/// Executes all four edge updates to create bidirectional connections in both directions.
 fn update_left_top_and_current_cells(
   graph,
   left_cell_coordinate,
@@ -237,6 +289,8 @@ fn update_left_top_and_current_cells(
   )
 }
 
+/// Convenience function to connect current cell to left neighbor only.
+/// Used when top neighbor is not navigable (hazard).
 fn update_left_and_current_cells(
   graph,
   left_cell_coordinate,
@@ -257,6 +311,8 @@ fn update_left_and_current_cells(
   )
 }
 
+/// Convenience function to connect current cell to top neighbor only.
+/// Used when left neighbor is not navigable (hazard).
 fn update_top_and_current_cells(
   graph,
   top_cell_coordinate,
@@ -277,6 +333,8 @@ fn update_top_and_current_cells(
   )
 }
 
+/// Initializes an isolated navigable cell with no neighbors yet discovered.
+/// Right and down connections will be added when those cells are processed later.
 fn initialize_new_sea(graph, curr_cell_coordinate) -> AdjacencyList {
   graph
   |> dict.insert(for: curr_cell_coordinate, insert: #(
@@ -288,7 +346,11 @@ fn initialize_new_sea(graph, curr_cell_coordinate) -> AdjacencyList {
   ))
 }
 
-fn build_graph(grid: Grid) -> AdjacencyList {
+/// Constructs a bidirectional adjacency graph from the treasure map grid.
+/// Processes cells left-to-right, top-to-bottom in a single pass.
+/// Only connects navigable cells (Water/Treasure), skipping Hazards.
+/// Time: O(rows * cols), Space: O(rows * cols) for adjacency list
+fn plot_course(grid: Grid) -> AdjacencyList {
   let initial_prev_row_table: PrevRowTable = dict.new()
   let initial_graph: AdjacencyList = dict.new()
 
@@ -428,17 +490,38 @@ fn build_graph(grid: Grid) -> AdjacencyList {
   graph
 }
 
-fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int))) {
+fn add_directions(
+  rest_queue: ItineraryQueue,
+  paths: List(CellCoordinate),
+  new_distance: Int,
+) {
+  paths
+  |> list.fold(from: rest_queue, with: fn(queue, path) {
+    queue |> list.append([#(path, new_distance)])
+  })
+}
+
+/// Performs breadth-first search (BFS) to find shortest path from start to treasure.
+/// Uses a queue (FIFO) to explore cells level-by-level, ensuring shortest distance.
+/// Removes visited cells from graph to prevent revisiting.
+/// Returns Ok(distance) if treasure found, Error(Nil) if unreachable.
+/// Time: O(rows * cols), Space: O(rows * cols) for queue in worst case
+fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
   case itinerary_queue {
-    [] -> #(graph, Error(Nil))
+    // Queue exhausted without finding treasure - no valid path exists
+    [] -> Error(Nil)
 
     [first, ..rest] -> {
+      // Dequeue next cell to explore with its accumulated distance
       let #(cell_coordinate, distance) = first
 
       case graph |> dict.get(cell_coordinate) {
+        // Cell already visited or doesn't exist in graph - skip it
         Error(Nil) -> set_sail(graph, rest)
 
+        // Cell found in graph - process it
         Ok(path_results) -> {
+          // Extract cell content and all four neighbor connections
           let #(
             cell_content_result,
             top_path_result,
@@ -446,18 +529,24 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
             down_path_result,
             left_path_result,
           ) = path_results
-          let updated_graph = graph
+          // Mark cell as visited by removing from graph (prevents cycles)
+          let updated_graph = graph |> dict.delete(cell_coordinate)
+          // Distance to any neighbor is one step further
           let new_distance = distance + 1
 
           case cell_content_result {
+            // Malformed cell content - skip and continue
             Error(Nil) -> set_sail(updated_graph, rest)
 
-            Ok(cell_content) -> {
+            Ok(cell_content) ->
               case cell_content {
-                Treasure -> #(updated_graph, Ok(new_distance))
+                // Found the treasure! Return the distance traveled
+                Treasure -> Ok(distance)
 
+                // Should never reach hazard (filtered during graph construction)
                 Hazard -> set_sail(updated_graph, rest)
 
+                // Navigable water cell - enqueue all unvisited neighbors
                 Water -> {
                   case
                     top_path_result,
@@ -473,28 +562,28 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                     Error(Nil), Error(Nil), Error(Nil), Ok(left_path) ->
                       set_sail(
                         updated_graph,
-                        rest |> list.append([#(left_path, new_distance)]),
+                        rest |> add_directions([left_path], new_distance),
                       )
 
                     // Only down neighbor
                     Error(Nil), Error(Nil), Ok(down_path), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> list.append([#(down_path, new_distance)]),
+                        rest |> add_directions([down_path], new_distance),
                       )
 
                     // Only right neighbor
                     Error(Nil), Ok(right_path), Error(Nil), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> list.append([#(right_path, new_distance)]),
+                        rest |> add_directions([right_path], new_distance),
                       )
 
                     // Only top neighbor
                     Ok(top_path), Error(Nil), Error(Nil), Error(Nil) ->
                       set_sail(
                         updated_graph,
-                        rest |> list.append([#(top_path, new_distance)]),
+                        rest |> add_directions([top_path], new_distance),
                       )
 
                     // Down and left neighbors
@@ -502,10 +591,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(down_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [down_path, left_path],
+                            new_distance,
+                          ),
                       )
 
                     // Right and left neighbors
@@ -513,10 +602,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(right_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [right_path, left_path],
+                            new_distance,
+                          ),
                       )
 
                     // Right, down, and left neighbors
@@ -524,11 +613,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(right_path, new_distance),
-                            #(down_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [right_path, down_path, left_path],
+                            new_distance,
+                          ),
                       )
 
                     // Right and down neighbors
@@ -536,10 +624,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(right_path, new_distance),
-                            #(down_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [right_path, down_path],
+                            new_distance,
+                          ),
                       )
 
                     // Top and left neighbors
@@ -547,10 +635,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions([top_path, left_path], new_distance),
                       )
 
                     // Top, down, and left neighbors
@@ -558,11 +643,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(down_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [top_path, down_path, left_path],
+                            new_distance,
+                          ),
                       )
 
                     // Top and down neighbors
@@ -570,10 +654,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(down_path, new_distance),
-                          ]),
+                          |> add_directions([top_path, down_path], new_distance),
                       )
 
                     // Top and right neighbors
@@ -581,10 +662,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(right_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [top_path, right_path],
+                            new_distance,
+                          ),
                       )
 
                     // Top, right, and left neighbors
@@ -592,11 +673,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(right_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [top_path, right_path, left_path],
+                            new_distance,
+                          ),
                       )
 
                     // Top, right, and down neighbors
@@ -604,11 +684,10 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(right_path, new_distance),
-                            #(down_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [top_path, right_path, down_path],
+                            new_distance,
+                          ),
                       )
 
                     // All four neighbors
@@ -616,17 +695,14 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
                       set_sail(
                         updated_graph,
                         rest
-                          |> list.append([
-                            #(top_path, new_distance),
-                            #(right_path, new_distance),
-                            #(down_path, new_distance),
-                            #(left_path, new_distance),
-                          ]),
+                          |> add_directions(
+                            [top_path, right_path, down_path, left_path],
+                            new_distance,
+                          ),
                       )
                   }
                 }
               }
-            }
           }
         }
       }
@@ -634,65 +710,212 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int)))
   }
 }
 
-fn search_for_el_dorado(graph: AdjacencyList, grid: Grid) {
-  grid
-  |> list.index_fold(from: graph, with: fn(row_acc, row, row_index) {
-    let graph = row_acc
-
-    row
-    |> list.index_fold(from: graph, with: fn(column_acc, _cell, column_index) {
-      let graph = column_acc
-      let coordinate = #(row_index, column_index)
-
-      // Check if this cell is an undiscovered land cell
-      case graph |> dict.has_key(coordinate) {
-        True -> {
-          todo
-          // Explore water starting from this cell
-        }
-
-        // Cell is hazard or already visited
-        False -> graph
-      }
-    })
-  })
-}
-
-fn t(grid: Grid) {
-  let first =
+/// Main entry point: finds shortest path from top-left (0,0) to treasure.
+/// Handles edge cases: starting on hazard (-1), starting on treasure (0).
+/// Returns distance as integer, or -1 if unreachable.
+fn search_for_el_dorado(grid: Grid) {
+  // Extract content of starting position (0, 0)
+  let start =
     grid
     |> list.first
     |> result.unwrap(or: [])
     |> list.first
     |> result.unwrap(or: Hazard)
 
-  case first {
+  case start {
+    // Starting position is blocked - impossible to begin journey
     Hazard -> -1
+    // Starting position is the treasure - already at goal
     Treasure -> 0
-    Water -> {
-      let #(_graph, distance_result) =
-        build_graph(grid) |> set_sail([#(#(0, 0), 0)])
-
-      case distance_result {
+    // Valid start - build graph and perform BFS
+    Water ->
+      case plot_course(grid) |> set_sail([#(#(0, 0), 0)]) {
         Ok(distance) -> distance
+
         Error(Nil) -> -1
       }
-    }
   }
 }
 
 pub fn run() {
-  let g1 = [
+  // Test 1: Basic path with obstacles - Expected: 5
+  let grid1 = [
     [Water, Water, Water, Water],
     [Hazard, Water, Hazard, Water],
     [Water, Water, Water, Water],
     [Treasure, Hazard, Hazard, Water],
   ]
+  io.println("\n=== Test 1: Basic path with obstacles ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid1)))
 
-  echo t(g1)
-  //   |> dict.each(fn(key, value) {
-  //     io.println("\n")
-  //     io.println("key: " <> string.inspect(key))
-  //     io.println("value: " <> string.inspect(value))
-  //   })
+  // Test 2: Straight horizontal path - Expected: 3
+  let grid2 = [[Water, Water, Water, Treasure]]
+  io.println("\n=== Test 2: Straight horizontal path ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid2)))
+
+  // Test 3: Straight vertical path - Expected: 3
+  let grid3 = [[Water], [Water], [Water], [Treasure]]
+  io.println("\n=== Test 3: Straight vertical path ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid3)))
+
+  // Test 4: Treasure in top-right corner - Expected: 3
+  let grid4 = [
+    [Water, Water, Water, Treasure],
+    [Water, Hazard, Hazard, Water],
+    [Water, Water, Water, Water],
+    [Water, Hazard, Water, Water],
+  ]
+  io.println("\n=== Test 4: Treasure in top-right corner ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid4)))
+
+  // Test 5: Treasure in bottom-right corner - Expected: 6
+  let grid5 = [
+    [Water, Water, Water, Water],
+    [Water, Hazard, Hazard, Water],
+    [Water, Water, Water, Water],
+    [Water, Hazard, Water, Treasure],
+  ]
+  io.println("\n=== Test 5: Treasure in bottom-right corner ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid5)))
+
+  // Test 6: Completely blocked - Expected: -1 (unreachable)
+  let grid6 = [
+    [Water, Water, Hazard, Hazard],
+    [Water, Water, Hazard, Hazard],
+    [Hazard, Hazard, Hazard, Water],
+    [Hazard, Hazard, Water, Treasure],
+  ]
+  io.println("\n=== Test 6: Unreachable treasure ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid6)))
+
+  // Test 7: Maze with multiple turns - Expected: 6
+  let grid7 = [
+    [Water, Hazard, Water, Water],
+    [Water, Hazard, Water, Hazard],
+    [Water, Water, Water, Hazard],
+    [Hazard, Hazard, Water, Treasure],
+  ]
+  io.println("\n=== Test 7: Maze with multiple turns ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid7)))
+
+  // Test 8: Treasure at start - Expected: 0
+  let grid8 = [[Treasure]]
+  io.println("\n=== Test 8: Treasure at starting position ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid8)))
+
+  // Test 9: Large open ocean - Expected: 7
+  let grid9 = [
+    [Water, Water, Water, Water, Water],
+    [Water, Water, Water, Water, Water],
+    [Water, Water, Water, Water, Water],
+    [Water, Water, Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 9: Large open area ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid9)))
+
+  // Test 10: Narrow corridor - Expected: 6
+  let grid10 = [
+    [Water, Hazard, Hazard],
+    [Water, Hazard, Hazard],
+    [Water, Hazard, Hazard],
+    [Water, Water, Water],
+    [Hazard, Hazard, Treasure],
+  ]
+  io.println("\n=== Test 10: Narrow corridor ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid10)))
+
+  // Test 11: Spiral pattern - Expected: 11
+  let grid11 = [
+    [Water, Water, Water, Water, Water],
+    [Hazard, Hazard, Hazard, Hazard, Water],
+    [Water, Water, Water, Hazard, Water],
+    [Water, Hazard, Water, Hazard, Water],
+    [Water, Treasure, Water, Water, Water],
+  ]
+  io.println("\n=== Test 11: Spiral pattern ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid11)))
+
+  // Test 12: Multiple disconnected islands - Expected: -1
+  let grid12 = [
+    [Water, Water, Hazard, Water, Water],
+    [Water, Water, Hazard, Water, Water],
+    [Hazard, Hazard, Hazard, Hazard, Hazard],
+    [Water, Water, Hazard, Treasure, Water],
+    [Water, Water, Hazard, Water, Water],
+  ]
+  io.println("\n=== Test 12: Disconnected treasure island ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid12)))
+
+  // Test 13: Almost all hazards - Expected: -1
+  let grid13 = [
+    [Water, Hazard, Hazard],
+    [Hazard, Hazard, Hazard],
+    [Hazard, Hazard, Treasure],
+  ]
+  io.println("\n=== Test 13: Almost all hazards ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid13)))
+
+  // Test 14: Diagonal barrier - Expected: 6
+  let grid14 = [
+    [Water, Water, Water, Water],
+    [Water, Hazard, Water, Water],
+    [Water, Water, Hazard, Water],
+    [Water, Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 14: Diagonal barrier ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid14)))
+
+  // Test 15: Adjacent treasure - Expected: 1
+  let grid15 = [[Water, Treasure]]
+  io.println("\n=== Test 15: Adjacent treasure ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid15)))
+
+  // Test 16: Start on hazard - Expected: -1
+  let grid16 = [
+    [Hazard, Water, Water],
+    [Water, Water, Water],
+    [Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 16: Starting on hazard ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid16)))
+
+  // Test 17: Complex zigzag path - Expected: 10
+  let grid17 = [
+    [Water, Water, Hazard, Hazard, Hazard],
+    [Hazard, Water, Hazard, Water, Water],
+    [Water, Water, Hazard, Water, Hazard],
+    [Water, Hazard, Hazard, Water, Hazard],
+    [Water, Water, Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 17: Complex zigzag path ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid17)))
+
+  // Test 18: Single row with hazard in middle - Expected: -1
+  let grid18 = [[Water, Water, Hazard, Water, Treasure]]
+  io.println("\n=== Test 18: Blocked single row ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid18)))
+
+  // Test 19: U-shaped path - Expected: 6
+  let grid19 = [
+    [Water, Water, Water],
+    [Water, Hazard, Water],
+    [Water, Hazard, Water],
+    [Water, Hazard, Water],
+    [Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 19: U-shaped detour ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid19)))
+
+  // Test 20: Large grid with optimal path - Expected: 11
+  let grid20 = [
+    [Water, Water, Water, Water, Water, Water],
+    [Water, Hazard, Hazard, Hazard, Hazard, Water],
+    [Water, Water, Water, Water, Hazard, Water],
+    [Hazard, Hazard, Hazard, Water, Hazard, Water],
+    [Water, Water, Water, Water, Hazard, Water],
+    [Water, Hazard, Hazard, Hazard, Hazard, Water],
+    [Water, Water, Water, Water, Water, Treasure],
+  ]
+  io.println("\n=== Test 20: Large complex maze ===")
+  io.println("Result: " <> string.inspect(search_for_el_dorado(grid20)))
 }
