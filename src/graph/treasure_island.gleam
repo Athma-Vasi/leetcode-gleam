@@ -353,7 +353,8 @@ fn initialize_new_sea(graph, curr_cell_coordinate) -> AdjacencyList {
 /// Constructs a bidirectional adjacency graph from the treasure map grid.
 /// Processes cells left-to-right, top-to-bottom in a single pass.
 /// Only connects navigable cells (Water/Treasure), skipping Hazards.
-/// Time: O(rows * cols), Space: O(rows * cols) for adjacency list
+/// Time: O(rows × cols) - single pass through all cells
+/// Space: O(rows × cols) for adjacency list storage
 fn plot_course(grid: Grid) -> AdjacencyList {
   let initial_prev_row_table: PrevRowTable = dict.new()
   let initial_graph: AdjacencyList = dict.new()
@@ -497,6 +498,8 @@ fn plot_course(grid: Grid) -> AdjacencyList {
 /// Convenience function to append multiple neighbor cells to the BFS queue.
 /// Takes a list of unvisited neighbor coordinates and enqueues each with the new distance.
 /// Reduces code repetition in set_sail's 16 neighbor configuration cases.
+/// Note: Each list.append operation is O(queue_length), making this O(neighbors × queue_length).
+/// With at most 4 neighbors, this is O(queue_length) per call.
 fn add_directions(
   rest_queue: ItineraryQueue,
   paths: List(CellCoordinate),
@@ -512,7 +515,8 @@ fn add_directions(
 /// Uses a queue (FIFO) to explore cells level-by-level, ensuring shortest distance.
 /// Removes visited cells from graph to prevent revisiting.
 /// Returns Ok(distance) if treasure found, Error(Nil) if unreachable.
-/// Time: O(rows * cols), Space: O(rows * cols) for queue in worst case
+/// Time: O((rows × cols)²) - each cell processed once, but list.append to queue is O(queue_length)
+/// Space: O(rows × cols) for adjacency list and queue storage
 fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
   case itinerary_queue {
     // Queue exhausted without finding treasure - no valid path exists
