@@ -1,9 +1,7 @@
 import gleam/dict
-import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
-import gleam/string
 
 pub type CellContent {
   Treasure
@@ -430,6 +428,259 @@ fn build_graph(grid: Grid) -> AdjacencyList {
   graph
 }
 
+fn set_sail(graph: AdjacencyList, itinerary_queue: List(#(CellCoordinate, Int))) {
+  case itinerary_queue {
+    [] -> #(graph, Error(Nil))
+
+    [first, ..rest] -> {
+      let #(cell_coordinate, distance) = first
+
+      case graph |> dict.get(cell_coordinate) {
+        Error(Nil) -> set_sail(graph, rest)
+
+        Ok(path_results) -> {
+          let #(
+            cell_content_result,
+            top_path_result,
+            right_path_result,
+            down_path_result,
+            left_path_result,
+          ) = path_results
+          let updated_graph = graph
+          let new_distance = distance + 1
+
+          case cell_content_result {
+            Error(Nil) -> set_sail(updated_graph, rest)
+
+            Ok(cell_content) -> {
+              case cell_content {
+                Treasure -> #(updated_graph, Ok(new_distance))
+
+                Hazard -> set_sail(updated_graph, rest)
+
+                Water -> {
+                  case
+                    top_path_result,
+                    right_path_result,
+                    down_path_result,
+                    left_path_result
+                  {
+                    // Isolated cell with no neighbors
+                    Error(Nil), Error(Nil), Error(Nil), Error(Nil) ->
+                      set_sail(updated_graph, rest)
+
+                    // Only left neighbor
+                    Error(Nil), Error(Nil), Error(Nil), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest |> list.append([#(left_path, new_distance)]),
+                      )
+
+                    // Only down neighbor
+                    Error(Nil), Error(Nil), Ok(down_path), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest |> list.append([#(down_path, new_distance)]),
+                      )
+
+                    // Only right neighbor
+                    Error(Nil), Ok(right_path), Error(Nil), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest |> list.append([#(right_path, new_distance)]),
+                      )
+
+                    // Only top neighbor
+                    Ok(top_path), Error(Nil), Error(Nil), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest |> list.append([#(top_path, new_distance)]),
+                      )
+
+                    // Down and left neighbors
+                    Error(Nil), Error(Nil), Ok(down_path), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(down_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Right and left neighbors
+                    Error(Nil), Ok(right_path), Error(Nil), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(right_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Right, down, and left neighbors
+                    Error(Nil), Ok(right_path), Ok(down_path), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(right_path, new_distance),
+                            #(down_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Right and down neighbors
+                    Error(Nil), Ok(right_path), Ok(down_path), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(right_path, new_distance),
+                            #(down_path, new_distance),
+                          ]),
+                      )
+
+                    // Top and left neighbors
+                    Ok(top_path), Error(Nil), Error(Nil), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Top, down, and left neighbors
+                    Ok(top_path), Error(Nil), Ok(down_path), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(down_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Top and down neighbors
+                    Ok(top_path), Error(Nil), Ok(down_path), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(down_path, new_distance),
+                          ]),
+                      )
+
+                    // Top and right neighbors
+                    Ok(top_path), Ok(right_path), Error(Nil), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(right_path, new_distance),
+                          ]),
+                      )
+
+                    // Top, right, and left neighbors
+                    Ok(top_path), Ok(right_path), Error(Nil), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(right_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+
+                    // Top, right, and down neighbors
+                    Ok(top_path), Ok(right_path), Ok(down_path), Error(Nil) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(right_path, new_distance),
+                            #(down_path, new_distance),
+                          ]),
+                      )
+
+                    // All four neighbors
+                    Ok(top_path), Ok(right_path), Ok(down_path), Ok(left_path) ->
+                      set_sail(
+                        updated_graph,
+                        rest
+                          |> list.append([
+                            #(top_path, new_distance),
+                            #(right_path, new_distance),
+                            #(down_path, new_distance),
+                            #(left_path, new_distance),
+                          ]),
+                      )
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fn search_for_el_dorado(graph: AdjacencyList, grid: Grid) {
+  grid
+  |> list.index_fold(from: graph, with: fn(row_acc, row, row_index) {
+    let graph = row_acc
+
+    row
+    |> list.index_fold(from: graph, with: fn(column_acc, _cell, column_index) {
+      let graph = column_acc
+      let coordinate = #(row_index, column_index)
+
+      // Check if this cell is an undiscovered land cell
+      case graph |> dict.has_key(coordinate) {
+        True -> {
+          todo
+          // Explore water starting from this cell
+        }
+
+        // Cell is hazard or already visited
+        False -> graph
+      }
+    })
+  })
+}
+
+fn t(grid: Grid) {
+  let first =
+    grid
+    |> list.first
+    |> result.unwrap(or: [])
+    |> list.first
+    |> result.unwrap(or: Hazard)
+
+  case first {
+    Hazard -> -1
+    Treasure -> 0
+    Water -> {
+      let #(_graph, distance_result) =
+        build_graph(grid) |> set_sail([#(#(0, 0), 0)])
+
+      case distance_result {
+        Ok(distance) -> distance
+        Error(Nil) -> -1
+      }
+    }
+  }
+}
+
 pub fn run() {
   let g1 = [
     [Water, Water, Water, Water],
@@ -438,10 +689,10 @@ pub fn run() {
     [Treasure, Hazard, Hazard, Water],
   ]
 
-  build_graph(g1)
-  |> dict.each(fn(key, value) {
-    io.println("\n")
-    io.println("key: " <> string.inspect(key))
-    io.println("value: " <> string.inspect(value))
-  })
+  echo t(g1)
+  //   |> dict.each(fn(key, value) {
+  //     io.println("\n")
+  //     io.println("key: " <> string.inspect(key))
+  //     io.println("value: " <> string.inspect(value))
+  //   })
 }
