@@ -558,7 +558,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                 Hazard -> set_sail(updated_graph, rest_itinerary)
 
                 // Navigable water cell - enqueue all unvisited neighbors
-                Water -> {
+                Water ->
                   case
                     top_path_result,
                     right_path_result,
@@ -716,7 +716,6 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
                           ),
                       )
                   }
-                }
               }
           }
         }
@@ -728,7 +727,7 @@ fn set_sail(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
 /// Main entry point: finds shortest path from top-left (0,0) to treasure.
 /// Handles edge cases: starting on hazard (-1), starting on treasure (0).
 /// Returns distance as integer, or -1 if unreachable.
-fn search_for_el_dorado(grid: Grid) {
+fn search_for_treasure(grid: Grid) {
   // Extract content of starting position (0, 0)
   let start =
     grid
@@ -761,17 +760,17 @@ pub fn run() {
     [Treasure, Hazard, Hazard, Water],
   ]
   io.println("\n=== Test 1: Basic path with obstacles ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid1)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid1)))
 
   // Test 2: Straight horizontal path - Expected: 3
   let grid2 = [[Water, Water, Water, Treasure]]
   io.println("\n=== Test 2: Straight horizontal path ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid2)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid2)))
 
   // Test 3: Straight vertical path - Expected: 3
   let grid3 = [[Water], [Water], [Water], [Treasure]]
   io.println("\n=== Test 3: Straight vertical path ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid3)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid3)))
 
   // Test 4: Treasure in top-right corner - Expected: 3
   let grid4 = [
@@ -781,7 +780,7 @@ pub fn run() {
     [Water, Hazard, Water, Water],
   ]
   io.println("\n=== Test 4: Treasure in top-right corner ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid4)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid4)))
 
   // Test 5: Treasure in bottom-right corner - Expected: 6
   let grid5 = [
@@ -791,7 +790,7 @@ pub fn run() {
     [Water, Hazard, Water, Treasure],
   ]
   io.println("\n=== Test 5: Treasure in bottom-right corner ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid5)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid5)))
 
   // Test 6: Completely blocked - Expected: -1 (unreachable)
   let grid6 = [
@@ -801,7 +800,7 @@ pub fn run() {
     [Hazard, Hazard, Water, Treasure],
   ]
   io.println("\n=== Test 6: Unreachable treasure ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid6)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid6)))
 
   // Test 7: Maze with multiple turns - Expected: 6
   let grid7 = [
@@ -811,12 +810,12 @@ pub fn run() {
     [Hazard, Hazard, Water, Treasure],
   ]
   io.println("\n=== Test 7: Maze with multiple turns ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid7)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid7)))
 
   // Test 8: Treasure at start - Expected: 0
   let grid8 = [[Treasure]]
   io.println("\n=== Test 8: Treasure at starting position ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid8)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid8)))
 
   // Test 9: Large open ocean - Expected: 7
   let grid9 = [
@@ -826,7 +825,7 @@ pub fn run() {
     [Water, Water, Water, Water, Treasure],
   ]
   io.println("\n=== Test 9: Large open area ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid9)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid9)))
 
   // Test 10: Narrow corridor - Expected: 6
   let grid10 = [
@@ -837,7 +836,7 @@ pub fn run() {
     [Hazard, Hazard, Treasure],
   ]
   io.println("\n=== Test 10: Narrow corridor ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid10)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid10)))
 
   // Test 11: Spiral pattern - Expected: 11
   let grid11 = [
@@ -848,7 +847,7 @@ pub fn run() {
     [Water, Treasure, Water, Water, Water],
   ]
   io.println("\n=== Test 11: Spiral pattern ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid11)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid11)))
 
   // Test 12: Multiple disconnected islands - Expected: -1
   let grid12 = [
@@ -859,7 +858,7 @@ pub fn run() {
     [Water, Water, Hazard, Water, Water],
   ]
   io.println("\n=== Test 12: Disconnected treasure island ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid12)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid12)))
 
   // Test 13: Almost all hazards - Expected: -1
   let grid13 = [
@@ -868,7 +867,7 @@ pub fn run() {
     [Hazard, Hazard, Treasure],
   ]
   io.println("\n=== Test 13: Almost all hazards ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid13)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid13)))
 
   // Test 14: Diagonal barrier - Expected: 6
   let grid14 = [
@@ -878,12 +877,12 @@ pub fn run() {
     [Water, Water, Water, Treasure],
   ]
   io.println("\n=== Test 14: Diagonal barrier ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid14)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid14)))
 
   // Test 15: Adjacent treasure - Expected: 1
   let grid15 = [[Water, Treasure]]
   io.println("\n=== Test 15: Adjacent treasure ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid15)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid15)))
 
   // Test 16: Start on hazard - Expected: -1
   let grid16 = [
@@ -892,7 +891,7 @@ pub fn run() {
     [Water, Water, Treasure],
   ]
   io.println("\n=== Test 16: Starting on hazard ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid16)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid16)))
 
   // Test 17: Complex zigzag path - Expected: 10
   let grid17 = [
@@ -903,12 +902,12 @@ pub fn run() {
     [Water, Water, Water, Water, Treasure],
   ]
   io.println("\n=== Test 17: Complex zigzag path ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid17)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid17)))
 
   // Test 18: Single row with hazard in middle - Expected: -1
   let grid18 = [[Water, Water, Hazard, Water, Treasure]]
   io.println("\n=== Test 18: Blocked single row ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid18)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid18)))
 
   // Test 19: U-shaped path - Expected: 6
   let grid19 = [
@@ -919,7 +918,7 @@ pub fn run() {
     [Water, Water, Treasure],
   ]
   io.println("\n=== Test 19: U-shaped detour ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid19)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid19)))
 
   // Test 20: Large grid with optimal path - Expected: 11
   let grid20 = [
@@ -932,5 +931,5 @@ pub fn run() {
     [Water, Water, Water, Water, Water, Treasure],
   ]
   io.println("\n=== Test 20: Large complex maze ===")
-  io.println("Result: " <> string.inspect(search_for_el_dorado(grid20)))
+  io.println("Result: " <> string.inspect(search_for_treasure(grid20)))
 }
