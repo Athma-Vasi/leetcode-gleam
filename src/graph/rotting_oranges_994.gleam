@@ -458,3 +458,180 @@ fn add_directions(
     queue |> list.append([#(path, new_elapsed)])
   })
 }
+
+fn model_contagion_spread(graph: AdjacencyList, itinerary_queue: ItineraryQueue) {
+  case itinerary_queue {
+    // Queue exhausted without finding treasure - no valid path exists
+    [] -> Error(Nil)
+
+    [first, ..rest_itinerary] -> {
+      let #(cell_coordinate, time_elapsed) = first
+
+      case graph |> dict.get(cell_coordinate) {
+        // Cell already visited or doesn't exist in graph - skip it
+        Error(Nil) -> model_contagion_spread(graph, rest_itinerary)
+
+        // Cell found in graph - process it
+        Ok(path_results) -> {
+          // Extract cell content and all four neighbor connections
+          let #(
+            cell_content_result,
+            top_path_result,
+            right_path_result,
+            down_path_result,
+            left_path_result,
+          ) = path_results
+          // Mark cell as visited by removing from graph (prevents cycles)
+          let updated_graph = graph |> dict.delete(cell_coordinate)
+          let new_elapsed = time_elapsed + 1
+
+          case
+            top_path_result,
+            right_path_result,
+            down_path_result,
+            left_path_result
+          {
+            // Isolated cell with no neighbors
+            Error(Nil), Error(Nil), Error(Nil), Error(Nil) ->
+              model_contagion_spread(updated_graph, rest_itinerary)
+
+            // Only left neighbor
+            Error(Nil), Error(Nil), Error(Nil), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([left_path], new_elapsed),
+              )
+
+            // Only down neighbor
+            Error(Nil), Error(Nil), Ok(down_path), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([down_path], new_elapsed),
+              )
+
+            // Only right neighbor
+            Error(Nil), Ok(right_path), Error(Nil), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([right_path], new_elapsed),
+              )
+
+            // Only top neighbor
+            Ok(top_path), Error(Nil), Error(Nil), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([top_path], new_elapsed),
+              )
+
+            // Down and left neighbors
+            Error(Nil), Error(Nil), Ok(down_path), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([down_path, left_path], new_elapsed),
+              )
+
+            // Right and left neighbors
+            Error(Nil), Ok(right_path), Error(Nil), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([right_path, left_path], new_elapsed),
+              )
+
+            // Right, down, and left neighbors
+            Error(Nil), Ok(right_path), Ok(down_path), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions(
+                    [right_path, down_path, left_path],
+                    new_elapsed,
+                  ),
+              )
+
+            // Right and down neighbors
+            Error(Nil), Ok(right_path), Ok(down_path), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([right_path, down_path], new_elapsed),
+              )
+
+            // Top and left neighbors
+            Ok(top_path), Error(Nil), Error(Nil), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([top_path, left_path], new_elapsed),
+              )
+
+            // Top, down, and left neighbors
+            Ok(top_path), Error(Nil), Ok(down_path), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions(
+                    [top_path, down_path, left_path],
+                    new_elapsed,
+                  ),
+              )
+
+            // Top and down neighbors
+            Ok(top_path), Error(Nil), Ok(down_path), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([top_path, down_path], new_elapsed),
+              )
+
+            // Top and right neighbors
+            Ok(top_path), Ok(right_path), Error(Nil), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions([top_path, right_path], new_elapsed),
+              )
+
+            // Top, right, and left neighbors
+            Ok(top_path), Ok(right_path), Error(Nil), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions(
+                    [top_path, right_path, left_path],
+                    new_elapsed,
+                  ),
+              )
+
+            // Top, right, and down neighbors
+            Ok(top_path), Ok(right_path), Ok(down_path), Error(Nil) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions(
+                    [top_path, right_path, down_path],
+                    new_elapsed,
+                  ),
+              )
+
+            // All four neighbors
+            Ok(top_path), Ok(right_path), Ok(down_path), Ok(left_path) ->
+              model_contagion_spread(
+                updated_graph,
+                rest_itinerary
+                  |> add_directions(
+                    [top_path, right_path, down_path, left_path],
+                    new_elapsed,
+                  ),
+              )
+          }
+        }
+      }
+    }
+  }
+}
