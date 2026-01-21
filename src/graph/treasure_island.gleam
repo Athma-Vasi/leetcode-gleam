@@ -76,9 +76,13 @@ type AdjacencyList =
     ),
   )
 
+/// Accumulated step count from starting position to a cell.
+/// Increments by 1 for each cell traversed during BFS exploration.
 type Distance =
   Int
 
+/// Queue of cells to explore during BFS, paired with their distances from start.
+/// FIFO structure: dequeue from front, enqueue neighbors at back.
 type ItineraryQueue =
   List(#(CellCoordinate, Distance))
 
@@ -490,6 +494,9 @@ fn plot_course(grid: Grid) -> AdjacencyList {
   graph
 }
 
+/// Convenience function to append multiple neighbor cells to the BFS queue.
+/// Takes a list of unvisited neighbor coordinates and enqueues each with the new distance.
+/// Reduces code repetition in set_sail's 16 neighbor configuration cases.
 fn add_directions(
   rest_queue: ItineraryQueue,
   paths: List(CellCoordinate),
