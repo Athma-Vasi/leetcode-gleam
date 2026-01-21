@@ -1,5 +1,5 @@
-import graph/number_of_islands_200
+import graph/treasure_island
 
 pub fn main() {
-  number_of_islands_200.run()
+  treasure_island.run()
 }
