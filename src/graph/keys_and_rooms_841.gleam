@@ -1,6 +1,5 @@
-import gleam/int
 import gleam/list
-import gleamy/set
+import gleam/set
 
 fn unlock_room(rooms: List(List(Int)), key) {
   rooms
@@ -14,7 +13,7 @@ fn unlock_room(rooms: List(List(Int)), key) {
 
 fn visit_rooms(rooms: List(List(Int)), stack: List(Int), visited: set.Set(Int)) {
   case stack {
-    [] -> set.count(visited) == list.length(rooms)
+    [] -> set.size(visited) == list.length(rooms)
     [key, ..rest] -> {
       case visited |> set.contains(key) {
         True -> visit_rooms(rooms, rest, visited)
@@ -34,7 +33,7 @@ fn visit_rooms(rooms: List(List(Int)), stack: List(Int), visited: set.Set(Int)) 
 // T(n) = O(n + m) where n is the number of rooms and m is the total number of keys
 // S(n) = O(n)
 fn t(rooms: List(List(Int))) {
-  visit_rooms(rooms, [0], set.new(int.compare))
+  visit_rooms(rooms, [0], set.new())
 }
 
 pub fn run() {

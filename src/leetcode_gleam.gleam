@@ -1,5 +1,5 @@
-import graph/treasure_island
+import graph/rotting_oranges_994
 
 pub fn main() {
-  treasure_island.run()
+  rotting_oranges_994.run()
 }
