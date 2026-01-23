@@ -3,7 +3,6 @@ import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
-import gleam/set
 import gleam/string
 
 /// LeetCode Problem 994: Rotting Oranges
@@ -88,10 +87,6 @@ type ItineraryQueue =
 /// Used to establish vertical connections between cells
 type PrevRowTable =
   dict.Dict(CellCoordinate, CellContent)
-
-/// Set tracking all fresh orange positions (used for validation)
-type FreshOrangesSet =
-  set.Set(CellCoordinate)
 
 /// Updates the current cell's top (upward) neighbor reference in the graph
 /// 
