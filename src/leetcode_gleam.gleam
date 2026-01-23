@@ -1,5 +1,5 @@
-import graph/rotting_oranges_994
+import graph/pacific_atlantic_water_flow_417
 
 pub fn main() {
-  rotting_oranges_994.run()
+  pacific_atlantic_water_flow_417.run()
 }
