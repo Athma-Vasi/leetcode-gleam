@@ -6,9 +6,9 @@
 // boundary cannot be captured (considered connected to the outside).
 //
 // Algorithm Overview:
-// 1. Mark all O's that touch borders as BorderO (safe from capture)
+// 1. Mark all O's that touch borders as Safe (safe from capture)
 // 2. Build adjacency list (graph) representing O cell connectivity
-// 3. DFS from each BorderO to propagate safety to all connected O's
+// 3. DFS from each Safe to propagate safety to all connected O's
 // 4. Replace remaining unmarked O's with X's (they are surrounded)
 //
 // Time Complexity: O(m * n) for all operations
@@ -32,11 +32,11 @@ import gleam/set
 // Cell content in the board
 // X: wall/boundary cell (part of the surrounding structure)
 // O: empty cell that may be vulnerable to capture if surrounded
-// BorderO: empty cell marked as safe (touching board boundary, cannot be captured)
+// Safe: empty cell marked as safe (touching board boundary, cannot be captured)
 pub type CellContent {
   X
   O
-  BorderO
+  Safe
 }
 
 type Board =
@@ -67,7 +67,7 @@ type CellContentResult =
 
 // Adjacency list representing cell connectivity graph
 // Maps coordinates to 5-tuple containing:
-//   1. Cell's own content (X, O, or BorderO)
+//   1. Cell's own content (X, O, or Safe)
 //   2. Path result to top neighbor
 //   3. Path result to right neighbor
 //   4. Path result to bottom neighbor
@@ -383,18 +383,18 @@ fn construct_region_connectivity_graph(board: Board) -> AdjacencyList {
 
               case left_cell_content, top_cell_content, curr_cell_content {
                 // curr cell is X, ignore
-                X, BorderO, X
-                | O, BorderO, X
-                | BorderO, O, X
-                | BorderO, BorderO, X
-                | BorderO, X, X
+                X, Safe, X
+                | O, Safe, X
+                | Safe, O, X
+                | Safe, Safe, X
+                | Safe, X, X
                 | O, X, X
                 | O, O, X
                 | X, X, X
                 | X, O, X
                 -> #(curr_cell_content, updated_prev_row_table, graph)
 
-                X, X, BorderO | X, X, O -> #(
+                X, X, Safe | X, X, O -> #(
                   curr_cell_content,
                   updated_prev_row_table,
                   graph
@@ -404,7 +404,7 @@ fn construct_region_connectivity_graph(board: Board) -> AdjacencyList {
                     ),
                 )
 
-                X, BorderO, O | X, BorderO, BorderO | X, O, BorderO | X, O, O -> #(
+                X, Safe, O | X, Safe, Safe | X, O, Safe | X, O, O -> #(
                   curr_cell_content,
                   updated_prev_row_table,
                   graph
@@ -416,7 +416,7 @@ fn construct_region_connectivity_graph(board: Board) -> AdjacencyList {
                     ),
                 )
 
-                BorderO, X, BorderO | BorderO, X, O | O, X, BorderO | O, X, O -> #(
+                Safe, X, Safe | Safe, X, O | O, X, Safe | O, X, O -> #(
                   curr_cell_content,
                   updated_prev_row_table,
                   graph
@@ -428,14 +428,14 @@ fn construct_region_connectivity_graph(board: Board) -> AdjacencyList {
                     ),
                 )
 
-                O, BorderO, O
-                | BorderO, O, BorderO
-                | BorderO, BorderO, BorderO
-                | BorderO, BorderO, O
-                | BorderO, O, O
+                O, Safe, O
+                | Safe, O, Safe
+                | Safe, Safe, Safe
+                | Safe, Safe, O
+                | Safe, O, O
                 | O, O, O
-                | O, O, BorderO
-                | O, BorderO, BorderO
+                | O, O, Safe
+                | O, Safe, Safe
                 -> #(
                   curr_cell_content,
                   updated_prev_row_table,
@@ -464,13 +464,13 @@ fn construct_region_connectivity_graph(board: Board) -> AdjacencyList {
   graph
 }
 
-// Marks all O cells on the board's border as BorderO (special marker for safe cells)
+// Marks all O cells on the board's border as Safe (special marker for safe cells)
 // Border O's can always escape to edge, so they're never captured
 // These serve as sources for subsequent DFS propagation to find all safe regions
-// Iterates through all cells and tags O's on any edge as BorderO
+// Iterates through all cells and tags O's on any edge as Safe
 // Time Complexity: O(m*n) - visits and classifies each cell once
 // Space Complexity: O(m*n) - creates new board with same dimensions
-fn mark_border_connected_o_cells(board: Board) {
+fn mark_safe_border_zones(board: Board) {
   let number_of_rows = list.length(board)
 
   board
@@ -481,8 +481,8 @@ fn mark_border_connected_o_cells(board: Board) {
       row
       |> list.index_fold(from: [], with: fn(row_acc, cell, column_index) {
         case cell {
-          // borderO initially not present in input
-          X | BorderO -> [cell, ..row_acc]
+          // Safe initially not present in input
+          X | Safe -> [cell, ..row_acc]
 
           O -> {
             let is_top_row = row_index == 0
@@ -492,21 +492,21 @@ fn mark_border_connected_o_cells(board: Board) {
 
             case is_top_row, is_right_column, is_bottom_row, is_left_column {
               // top-right
-              True, True, _, _ -> [BorderO, ..row_acc]
+              True, True, _, _ -> [Safe, ..row_acc]
               // top-left
-              True, False, _, True -> [BorderO, ..row_acc]
+              True, False, _, True -> [Safe, ..row_acc]
               // top row
-              True, False, _, False -> [BorderO, ..row_acc]
+              True, False, _, False -> [Safe, ..row_acc]
               // right column
-              False, True, False, _ -> [BorderO, ..row_acc]
+              False, True, False, _ -> [Safe, ..row_acc]
               // bottom-right
-              False, True, True, _ -> [BorderO, ..row_acc]
+              False, True, True, _ -> [Safe, ..row_acc]
               // bottom row
-              _, False, True, False -> [BorderO, ..row_acc]
+              _, False, True, False -> [Safe, ..row_acc]
               // bottom-left
-              _, False, True, True -> [BorderO, ..row_acc]
+              _, False, True, True -> [Safe, ..row_acc]
               // left column
-              False, False, False, True -> [BorderO, ..row_acc]
+              False, False, False, True -> [Safe, ..row_acc]
 
               // center o's
               False, False, False, False -> [O, ..row_acc]
@@ -521,9 +521,9 @@ fn mark_border_connected_o_cells(board: Board) {
   |> list.reverse
 }
 
-// DFS traversal to identify all O cells reachable from a starting BorderO cell
+// DFS traversal to identify all O cells reachable from a starting Safe cell
 // Uses iterative approach with explicit stack (itinerary_stack) instead of recursion
-// Follows graph edges to explore entire connected component of O/BorderO cells
+// Follows graph edges to explore entire connected component of O/Safe cells
 // Marks all discovered cells as safe (added to safe_zones set)
 // Time Complexity: O(k) where k = size of connected component - visits each reachable cell once
 // Space Complexity: O(k) - stack stores unvisited neighbors, set stores marked cells
@@ -693,9 +693,9 @@ fn propagate_safe_zone(
   }
 }
 
-// Processes all BorderO cells to identify and mark all safe (non-captured) regions
-// Iterates through each cell in the board; for BorderO cells, initiates DFS flood-fill
-// Populates the safe-zone set by exploring all O's reachable from each BorderO source
+// Processes all Safe cells to identify and mark all safe (non-captured) regions
+// Iterates through each cell in the board; for Safe cells, initiates DFS flood-fill
+// Populates the safe-zone set by exploring all O's reachable from each Safe source
 // Time Complexity: O(m*n) - visits each O cell at most once across all DFS calls
 // Space Complexity: O(m*n) - worst case: all cells are O's, stored in visited set
 fn mark_all_safe_regions(graph, board: Board) -> set.Set(CellCoordinate) {
@@ -708,7 +708,7 @@ fn mark_all_safe_regions(graph, board: Board) -> set.Set(CellCoordinate) {
         case curr_cell_content {
           X | O -> row_acc
 
-          BorderO -> {
+          Safe -> {
             let curr_cell_coordinate = #(row_index, column_index)
 
             propagate_safe_zone(
@@ -755,19 +755,19 @@ fn apply_safe_zones_to_board(
 
 // Main solver for LeetCode 130: Surrounded Regions problem
 // Algorithm:
-//   1. Mark border O's as BorderO (safe zone seeds)
+//   1. Mark border O's as Safe (safe zone seeds)
 //   2. Build connectivity graph with bidirectional edges between matching-content neighbors
-//   3. DFS from each BorderO to find all reachable O cells (safe regions)
+//   3. DFS from each Safe to find all reachable O cells (safe regions)
 //   4. Replace non-safe O's with X's in output
 // Handles edge cases: single cell, all same content, isolated regions, nested structures
 // Overall Time Complexity: O(m*n) - single pass for marking + graph building + DFS
 // Overall Space Complexity: O(m*n) - adjacency list + safe-zone set + output board
 fn t(board: Board) {
-  let with_border_os = mark_border_connected_o_cells(board)
+  let with_safe_border_zones = mark_safe_border_zones(board)
 
-  construct_region_connectivity_graph(with_border_os)
-  |> mark_all_safe_regions(with_border_os)
-  |> apply_safe_zones_to_board(with_border_os)
+  construct_region_connectivity_graph(with_safe_border_zones)
+  |> mark_all_safe_regions(with_safe_border_zones)
+  |> apply_safe_zones_to_board(with_safe_border_zones)
 }
 
 // ============================================================================
