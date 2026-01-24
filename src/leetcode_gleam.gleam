@@ -1,5 +1,5 @@
-import graph/pacific_atlantic_water_flow_417
+import graph/surrounded_regions_130
 
 pub fn main() {
-  pacific_atlantic_water_flow_417.run()
+  surrounded_regions_130.run()
 }
