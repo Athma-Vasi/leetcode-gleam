@@ -2,7 +2,6 @@ import gleam/dict
 import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
-import gleam/result
 import gleam/set
 import gleam/string
 
@@ -34,12 +33,12 @@ fn determine_if_differs_by_one_letter(comparee, compared) -> Bool {
   }
 }
 
-fn add_edge_between(graph, key: Word, value: Word) {
+fn add_edge_from(graph, word, adjacent: Word) {
   graph
-  |> dict.upsert(update: key, with: fn(adjacents_maybe) {
+  |> dict.upsert(update: word, with: fn(adjacents_maybe) {
     case adjacents_maybe {
-      None -> set.new() |> set.insert(value)
-      Some(adjacents) -> adjacents |> set.insert(value)
+      None -> set.new() |> set.insert(adjacent)
+      Some(adjacents) -> adjacents |> set.insert(adjacent)
     }
   })
 }
@@ -51,11 +50,10 @@ fn build_graph(word_list: List(String)) -> AdjacencyList {
     |> list.fold(from: graph, with: fn(graph, compared) {
       case determine_if_differs_by_one_letter(comparee, compared) {
         False -> graph
-
         True ->
           graph
-          |> add_edge_between(comparee, compared)
-          |> add_edge_between(compared, comparee)
+          |> add_edge_from(comparee, compared)
+          |> add_edge_from(compared, comparee)
       }
     })
   })
