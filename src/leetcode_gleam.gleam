@@ -1,5 +1,5 @@
-import graph/word_ladder_127
+import graph/network_delay_time_743
 
 pub fn main() {
-  word_ladder_127.run()
+  network_delay_time_743.run()
 }
