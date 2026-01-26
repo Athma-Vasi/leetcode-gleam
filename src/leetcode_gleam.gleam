@@ -1,5 +1,5 @@
-import graph/network_delay_time_743
+import graph/reconstruct_itinerary_332
 
 pub fn main() {
-  network_delay_time_743.run()
+  reconstruct_itinerary_332.run()
 }

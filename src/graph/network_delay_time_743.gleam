@@ -126,7 +126,7 @@ fn sort_desc_by_times(propagation_times: PropagationTimes) {
   })
 }
 
-fn t(times: DirectedEdges, n: Int, k: Int) -> Int {
+fn t(times: DirectedEdges, _n: Int, k: Int) -> Int {
   build_graph(times)
   |> explore_network([#(k, 0)], dict.new())
   |> sort_desc_by_times
