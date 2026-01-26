@@ -1,5 +1,5 @@
-import graph/reconstruct_itinerary_332
+import graph/find_city_with_smallest_number_of_neighbours_at_threshold_1334
 
 pub fn main() {
-  reconstruct_itinerary_332.run()
+  find_city_with_smallest_number_of_neighbours_at_threshold_1334.run()
 }
