@@ -1,14 +1,21 @@
 import gleam/dict
+import gleam/int
 import gleam/io
 import gleam/list
 import gleam/option
+import gleam/result
+import gleam/set
 import gleam/string
+import gleamy/priority_queue as queue
 
 type From =
-  Int
+  String
 
 type To =
-  Int
+  String
+
+type Ancestor =
+  String
 
 type Weight =
   Int
@@ -22,7 +29,13 @@ type BiDirectionalEdges =
 type AdjacencyList =
   dict.Dict(From, List(#(To, Weight)))
 
-fn build_graph(from bi_directional_edges: BiDirectionalEdges) {
+type PriorityQueue =
+  queue.Queue(#(From, Weight, Ancestor))
+
+type Stack =
+  List(#(From, Weight, Ancestor))
+
+fn build_graph(from bi_directional_edges: BiDirectionalEdges) -> AdjacencyList {
   bi_directional_edges
   |> list.fold(from: dict.new(), with: fn(graph, bi_directional_edge) {
     let #(from, to, weight) = bi_directional_edge
@@ -43,17 +56,79 @@ fn build_graph(from bi_directional_edges: BiDirectionalEdges) {
   })
 }
 
+fn initialize_unexplored_nodes(
+  bi_directional_edges: BiDirectionalEdges,
+) -> PriorityQueue {
+  let first =
+    bi_directional_edges
+    |> list.first
+    |> result.unwrap(or: #("", "", -1))
+  let #(first_from, _first_to, _first_weight) = first
+  let initial_set = set.new() |> set.insert(#(first_from, 0, ""))
+  let initial_priority_queue =
+    queue.new(fn(n1, n2) {
+      let #(from1, _weight1, _ancestor1) = n1
+      let #(from2, _weight2, _ancestor2) = n2
+      from1 |> string.compare(from2)
+    })
+
+  bi_directional_edges
+  |> list.fold(from: initial_set, with: fn(set_acc, bi_directional_edge) {
+    let #(from, to, _weight) = bi_directional_edge
+    set_acc |> set.insert(#(from, -1, "")) |> set.insert(#(to, -1, ""))
+  })
+  |> set.fold(from: initial_priority_queue, with: fn(priority_queue, node) {
+    priority_queue |> queue.push(node)
+  })
+}
+
+fn djikstra_traversal(
+  explored: Stack,
+  unexplored: PriorityQueue,
+  graph: AdjacencyList,
+) {
+  case unexplored |> queue.is_empty {
+    True -> {
+      explored
+    }
+    False -> {
+      case unexplored |> queue.pop {
+        Error(Nil) -> {
+          todo
+        }
+        Ok(tuple) -> {
+          let #(minimum, unexplored_popped) = tuple
+          let #(from, weight, ancestor) = minimum
+
+          case graph |> dict.get(from) {
+            Error(Nil) -> {
+              todo
+            }
+            Ok(edges) -> {
+              todo
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 fn t(
   _n: Int,
   bi_directional_edges: BiDirectionalEdges,
   _distance_threshold: Int,
 ) {
+  let unexplored = initialize_unexplored_nodes(bi_directional_edges)
+  io.println("\n")
+  io.println("unexplored: " <> string.inspect(unexplored))
+
   build_graph(from: bi_directional_edges)
 }
 
 pub fn run() {
   let n1 = 4
-  let edges1 = [#(0, 1, 3), #(1, 2, 1), #(1, 3, 4), #(2, 3, 1)]
+  let edges1 = [#("a", "b", 3), #("b", "c", 1), #("b", "d", 4), #("c", "d", 1)]
   let dt1 = 4
   // 3
   io.println("\n")
