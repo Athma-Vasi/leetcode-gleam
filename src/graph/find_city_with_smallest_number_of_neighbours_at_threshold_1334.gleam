@@ -1,117 +1,125 @@
 import gleam/dict
-import gleam/int
 import gleam/io
 import gleam/list
 import gleam/option
-import gleam/result
-import gleam/set
 import gleam/string
-import gleamy/priority_queue as queue
 
 type From =
-  String
+  Int
 
 type To =
-  String
+  Int
 
-type Ancestor =
-  String
-
-type Weight =
+type Distance =
   Int
 
 type BiDirectionalEdge =
-  #(From, To, Weight)
+  #(From, To, Distance)
 
 type BiDirectionalEdges =
   List(BiDirectionalEdge)
 
 type AdjacencyList =
-  dict.Dict(From, List(#(To, Weight)))
+  dict.Dict(From, List(#(To, Distance)))
 
-type PriorityQueue =
-  queue.Queue(#(From, Weight, Ancestor))
-
-type Stack =
-  List(#(From, Weight, Ancestor))
+type DistancesTable =
+  dict.Dict(#(From, To), Distance)
 
 fn build_graph(from bi_directional_edges: BiDirectionalEdges) -> AdjacencyList {
   bi_directional_edges
   |> list.fold(from: dict.new(), with: fn(graph, bi_directional_edge) {
-    let #(from, to, weight) = bi_directional_edge
+    let #(from, to, distance) = bi_directional_edge
 
     graph
-    |> dict.upsert(update: from, with: fn(edges_weights_maybe) {
-      case edges_weights_maybe {
-        option.None -> [#(to, weight)]
-        option.Some(edges_weights) -> [#(to, weight), ..edges_weights]
+    |> dict.upsert(update: from, with: fn(edges_distances_maybe) {
+      case edges_distances_maybe {
+        option.None -> [#(to, distance)]
+        option.Some(edges_distances) -> [#(to, distance), ..edges_distances]
       }
     })
-    |> dict.upsert(update: to, with: fn(edges_weights_maybe) {
-      case edges_weights_maybe {
-        option.None -> [#(from, weight)]
-        option.Some(edges_weights) -> [#(from, weight), ..edges_weights]
+    |> dict.upsert(update: to, with: fn(edges_distances_maybe) {
+      case edges_distances_maybe {
+        option.None -> [#(from, distance)]
+        option.Some(edges_distances) -> [#(from, distance), ..edges_distances]
       }
     })
   })
 }
 
-fn initialize_unexplored_nodes(
+fn build_distances_table(
   bi_directional_edges: BiDirectionalEdges,
-) -> PriorityQueue {
-  let first =
-    bi_directional_edges
-    |> list.first
-    |> result.unwrap(or: #("", "", -1))
-  let #(first_from, _first_to, _first_weight) = first
-  let initial_set = set.new() |> set.insert(#(first_from, 0, ""))
-  let initial_priority_queue =
-    queue.new(fn(n1, n2) {
-      let #(from1, _weight1, _ancestor1) = n1
-      let #(from2, _weight2, _ancestor2) = n2
-      from1 |> string.compare(from2)
-    })
-
+) -> DistancesTable {
   bi_directional_edges
-  |> list.fold(from: initial_set, with: fn(set_acc, bi_directional_edge) {
-    let #(from, to, _weight) = bi_directional_edge
-    set_acc |> set.insert(#(from, -1, "")) |> set.insert(#(to, -1, ""))
-  })
-  |> set.fold(from: initial_priority_queue, with: fn(priority_queue, node) {
-    priority_queue |> queue.push(node)
+  |> list.fold(from: dict.new(), with: fn(table, edge) {
+    let #(from, to, distance) = edge
+
+    table
+    |> dict.insert(for: #(from, from), insert: 0)
+    |> dict.insert(for: #(from, to), insert: distance)
   })
 }
 
-fn djikstra_traversal(
-  explored: Stack,
-  unexplored: PriorityQueue,
-  graph: AdjacencyList,
-) {
-  case unexplored |> queue.is_empty {
-    True -> {
-      explored
-    }
-    False -> {
-      case unexplored |> queue.pop {
-        Error(Nil) -> {
-          todo
-        }
-        Ok(tuple) -> {
-          let #(minimum, unexplored_popped) = tuple
-          let #(from, weight, ancestor) = minimum
+fn floyd_warshall_traversal(distances_table: DistancesTable, n: Int) {
+  let #(intermediates, froms, tos) = #(
+    list.range(1, n),
+    list.range(1, n),
+    list.range(1, n),
+  )
 
-          case graph |> dict.get(from) {
-            Error(Nil) -> {
-              todo
+  intermediates
+  |> list.fold(from: dict.new(), with: fn(updated_table, intermediate_index) {
+    froms
+    |> list.fold(from: updated_table, with: fn(updated_table, from_index) {
+      tos
+      |> list.fold(from: updated_table, with: fn(updated_table, to_index) {
+        case
+          distances_table |> dict.get(#(from_index, to_index)),
+          distances_table |> dict.get(#(from_index, intermediate_index)),
+          distances_table |> dict.get(#(intermediate_index, to_index))
+        {
+          // Error(Nil), Error(Nil), Error(Nil) -> {
+          //   updated_table
+          // }
+          // Error(Nil), Error(Nil), Ok(intermediate_to_to) -> {
+          //   updated_table
+          // }
+          // Error(Nil), Ok(from_to_intermediate), Error(Nil) -> {
+          //   updated_table
+          // }
+          // Ok(from_to_to), Error(Nil), Error(Nil) -> {
+          //   updated_table
+          // }
+          // Ok(from_to_to), Error(Nil), Ok(intermediate_to_to) -> {
+          //   updated_table
+          // }
+          // Ok(from_to_to), Ok(from_to_intermediate), Error(Nil) -> {
+          //   updated_table
+          // }
+          Error(Nil), Ok(from_to_intermediate), Ok(intermediate_to_to) ->
+            // infinity is always greater 
+            updated_table
+            |> dict.insert(
+              for: #(from_index, to_index),
+              insert: from_to_intermediate + intermediate_to_to,
+            )
+
+          Ok(from_to_to), Ok(from_to_intermediate), Ok(intermediate_to_to) ->
+            case from_to_to > from_to_intermediate + intermediate_to_to {
+              True ->
+                updated_table
+                |> dict.insert(
+                  for: #(from_index, to_index),
+                  insert: from_to_intermediate + intermediate_to_to,
+                )
+
+              False -> updated_table
             }
-            Ok(edges) -> {
-              todo
-            }
-          }
+
+          _, _, _ -> updated_table
         }
-      }
-    }
-  }
+      })
+    })
+  })
 }
 
 fn t(
@@ -119,24 +127,43 @@ fn t(
   bi_directional_edges: BiDirectionalEdges,
   _distance_threshold: Int,
 ) {
-  let unexplored = initialize_unexplored_nodes(bi_directional_edges)
-  io.println("\n")
-  io.println("unexplored: " <> string.inspect(unexplored))
-
-  build_graph(from: bi_directional_edges)
-}
-
-pub fn run() {
-  let n1 = 4
-  let edges1 = [#("a", "b", 3), #("b", "c", 1), #("b", "d", 4), #("c", "d", 1)]
-  let dt1 = 4
-  // 3
+  let graph = build_graph(from: bi_directional_edges)
   io.println("\n")
   io.println("graph: ")
-  t(n1, edges1, dt1)
+  graph
   |> dict.each(fn(key, value) {
     io.println("\n")
     io.println("key: " <> string.inspect(key))
     io.println("value: " <> string.inspect(value))
   })
+
+  io.println("\n")
+  io.println("distance_table: ")
+  let distance_table = build_distances_table(bi_directional_edges)
+  distance_table
+  |> dict.each(fn(key, value) {
+    io.println("\n")
+    io.println("key: " <> string.inspect(key))
+    io.println("value: " <> string.inspect(value))
+  })
+
+  io.println("\n")
+  io.println("updated_distance_table: ")
+  let updated_distance_table = floyd_warshall_traversal(distance_table, 4)
+  updated_distance_table
+  |> dict.each(fn(key, value) {
+    io.println("\n")
+    io.println("key: " <> string.inspect(key))
+    io.println("value: " <> string.inspect(value))
+  })
+}
+
+pub fn run() {
+  let n1 = 4
+  let edges1 = [#(1, 3, -2), #(3, 4, 2), #(4, 2, -1), #(2, 1, 4), #(2, 3, 3)]
+  let dt1 = 4
+  // 3
+  io.println("\n")
+  io.println("graph: ")
+  t(n1, edges1, dt1)
 }
