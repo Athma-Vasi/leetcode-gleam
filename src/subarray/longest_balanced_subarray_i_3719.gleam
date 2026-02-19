@@ -16,8 +16,6 @@ fn update_freq_table(
   })
 }
 
-// T(n) = O(n^2)
-// S(n) = O(n)
 fn longest_balanced(nums: List(Int)) {
   nums
   |> list.index_fold(from: 0, with: fn(max_length, _num, row_index) {
@@ -31,34 +29,29 @@ fn longest_balanced(nums: List(Int)) {
         with: fn(row_acc, num, column_index) {
           let #(max_length, odd_freq_table, even_freq_table) = row_acc
 
-          case column_index < row_index {
-            True -> row_acc
-            False -> {
-              let #(updated_odd_freq_table, updated_even_freq_table) = case
-                num % 2 == 0
-              {
-                True -> #(
-                  odd_freq_table,
-                  even_freq_table |> update_freq_table(with: num),
-                )
+          let #(updated_odd_freq_table, updated_even_freq_table) = case
+            num % 2 == 0
+          {
+            True -> #(
+              odd_freq_table,
+              even_freq_table |> update_freq_table(with: num),
+            )
 
-                False -> #(
-                  odd_freq_table |> update_freq_table(with: num),
-                  even_freq_table,
-                )
-              }
-
-              let new_max = case
-                dict.size(updated_odd_freq_table)
-                == dict.size(updated_even_freq_table)
-              {
-                True -> int.max(max_length, column_index - row_index + 1)
-                False -> max_length
-              }
-
-              #(new_max, updated_odd_freq_table, updated_even_freq_table)
-            }
+            False -> #(
+              odd_freq_table |> update_freq_table(with: num),
+              even_freq_table,
+            )
           }
+
+          let new_max = case
+            dict.size(updated_odd_freq_table)
+            == dict.size(updated_even_freq_table)
+          {
+            True -> int.max(max_length, column_index - { row_index + 1 })
+            False -> max_length
+          }
+
+          #(new_max, updated_odd_freq_table, updated_even_freq_table)
         },
       )
 

@@ -1,5 +1,5 @@
-import graph/find_city_with_smallest_number_of_neighbours_at_threshold_1334
+import subarray/count_binary_substrings_696
 
 pub fn main() {
-  find_city_with_smallest_number_of_neighbours_at_threshold_1334.run()
+  count_binary_substrings_696.run()
 }
