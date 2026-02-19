@@ -26,68 +26,65 @@ fn count_substrings(str: String) {
   // - prev_run_length: Length of the previously completed run of identical characters
   // - curr_run_length: Length of the current ongoing run of identical characters
   // - amount: Count of valid substrings found
+  let initial_prev_grapheme_maybe = option.None
   let initial_prev_run_length = 0
   let initial_curr_run_length = 0
   let initial_amount = 0
-  let initial_prev_grapheme_maybe = option.None
+  let initial_acc = #(
+    initial_prev_grapheme_maybe,
+    initial_prev_run_length,
+    initial_curr_run_length,
+    initial_amount,
+  )
 
   let #(_prev_grapheme_maybe, _prev_run_length, _curr_run_length, amount) =
     str
     |> string.to_graphemes
-    |> list.fold(
-      from: #(
-        initial_prev_grapheme_maybe,
-        initial_prev_run_length,
-        initial_curr_run_length,
-        initial_amount,
-      ),
-      with: fn(acc, curr_grapheme) {
-        let #(prev_grapheme_maybe, prev_run_length, curr_run_length, amount) =
-          acc
+    |> list.fold(from: initial_acc, with: fn(acc, curr_grapheme) {
+      let #(prev_grapheme_maybe, prev_run_length, curr_run_length, amount) = acc
 
-        case prev_grapheme_maybe {
-          option.None -> {
-            // First character: initialize the current run with length 1
-            #(
-              option.Some(curr_grapheme),
-              prev_run_length,
-              curr_run_length + 1,
-              amount,
-            )
-          }
-
-          option.Some(prev_grapheme) -> {
-            // Character encountered: determine if we continue same run or start new one
-            let #(new_prev_run_length, new_curr_run_length) = case
-              prev_grapheme == curr_grapheme
-            {
-              True ->
-                // Same character: continue current run, keep prev_run_length unchanged
-                #(prev_run_length, curr_run_length + 1)
-              False ->
-                // Different character: transition to new run
-                // The previous run (prev_run_length) is now complete
-                // Start new run with length 1, and shift current to previous
-                #(curr_run_length, 1)
-            }
-
-            // Count valid substring if we have equal or more chars in prev run than curr run
-            // This represents valid patterns like "00" followed by "11" = "0011"
-            let new_amount = case new_prev_run_length >= new_curr_run_length {
-              True -> amount + 1
-              False -> amount
-            }
-
-            #(
-              option.Some(curr_grapheme),
-              new_prev_run_length,
-              new_curr_run_length,
-              new_amount,
-            )
-          }
+      case prev_grapheme_maybe {
+        option.None -> {
+          // First character: initialize the current run with length 1
+          #(
+            option.Some(curr_grapheme),
+            prev_run_length,
+            curr_run_length + 1,
+            amount,
+          )
         }
-      },
-    )
+
+        option.Some(prev_grapheme) -> {
+          // Character encountered: determine if we continue same run or start new one
+          let #(new_prev_run_length, new_curr_run_length) = case
+            prev_grapheme == curr_grapheme
+          {
+            True ->
+              // Same character: continue current run, keep prev_run_length unchanged
+              #(prev_run_length, curr_run_length + 1)
+            False ->
+              // Different character: transition to new run
+              // The previous run (prev_run_length) is now complete
+              // Start new run with length 1, and shift current to previous
+              #(curr_run_length, 1)
+          }
+
+          // Count valid substring if we have equal or more chars in prev run than curr run
+          // This represents valid patterns like "00" followed by "11" = "0011"
+          let new_amount = case new_prev_run_length >= new_curr_run_length {
+            True -> amount + 1
+            False -> amount
+          }
+
+          #(
+            option.Some(curr_grapheme),
+            new_prev_run_length,
+            new_curr_run_length,
+            new_amount,
+          )
+        }
+      }
+    })
 
   amount
 }
