@@ -1,5 +1,5 @@
-import subarray/count_binary_substrings_696
+import graph/evaluate_division_399
 
 pub fn main() {
-  count_binary_substrings_696.run()
+  evaluate_division_399.run()
 }
