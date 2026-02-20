@@ -9,14 +9,14 @@ type Equations =
 type Values =
   List(Float)
 
-type Query =
-  #(String, String)
-
 type Queries =
-  List(Query)
+  List(#(String, String))
+
+type Edges =
+  List(#(String, Float))
 
 type AdjacencyList =
-  dict.Dict(String, List(#(String, Float)))
+  dict.Dict(String, Edges)
 
 // Builds a bidirectional weighted graph from equations.
 // For each equation a / b = k, we add:
@@ -65,9 +65,9 @@ fn build_graph(
 //
 // Time complexity: O(d), where d is the degree of the current node.
 // Space complexity: O(d), due to the pushed entries.
-fn fold_into(edges, rest, with accum_weight) {
+fn fold_into(edges: Edges, rest_stack, with accum_weight: Float) {
   edges
-  |> list.fold(from: rest, with: fn(stack, edge) {
+  |> list.fold(from: rest_stack, with: fn(stack, edge) {
     let #(variable, weight) = edge
     [#(variable, accum_weight *. weight), ..stack]
   })
@@ -118,17 +118,11 @@ fn traverse(graph: AdjacencyList, stack, to: String, visited, answer: Float) {
   }
 }
 
-// Evaluates all queries over the same prebuilt graph.
+// Evaluates all queries using a prebuilt graph.
 //
-// Overall complexity:
-// - Graph build: O(E)
-// - Query processing: O(Q * (V + E)) worst case
-// - Total: O(E + Q * (V + E))
-//
-// Space complexity: O(V + E), excluding output list.
-fn evaluate(equations: Equations, values: Values, queries: Queries) {
-  let graph = build_graph(dict.new(), equations, values)
-
+// Time complexity: O(Q * (V + E)) in the worst case.
+// Space complexity: O(V), excluding the output list.
+fn evaluate(graph, queries) {
   queries
   |> list.reverse
   |> list.fold(from: [], with: fn(result, query) {
@@ -138,22 +132,34 @@ fn evaluate(equations: Equations, values: Values, queries: Queries) {
   })
 }
 
+// Builds the graph once, then evaluates all queries.
+//
+// Overall complexity:
+// - Graph build: O(E)
+// - Query processing: O(Q * (V + E)) worst case
+// - Total: O(E + Q * (V + E))
+//
+// Space complexity: O(V + E), excluding output list.
+fn t(equations: Equations, values: Values, queries: Queries) {
+  build_graph(dict.new(), equations, values) |> evaluate(queries)
+}
+
 pub fn run() {
   let e1 = [#("a", "b"), #("b", "c")]
   let v1 = [2.0, 3.0]
   let q1 = [#("a", "c"), #("b", "a"), #("a", "e"), #("a", "a"), #("x", "x")]
   // [6.00000,0.50000,-1.00000,1.00000,-1.00000]
-  echo evaluate(e1, v1, q1)
+  echo t(e1, v1, q1)
 
   let e2 = [#("a", "b"), #("b", "c"), #("bc", "cd")]
   let v2 = [1.5, 2.5, 5.0]
   let q2 = [#("a", "c"), #("c", "b"), #("bc", "cd"), #("cd", "bc")]
   // [3.75000,0.40000,5.00000,0.20000]
-  echo evaluate(e2, v2, q2)
+  echo t(e2, v2, q2)
 
   let e3 = [#("a", "b")]
   let v3 = [0.5]
   let q3 = [#("a", "b"), #("b", "a"), #("a", "c"), #("x", "y")]
   // [0.50000,2.00000,-1.00000,-1.00000]
-  echo evaluate(e3, v3, q3)
+  echo t(e3, v3, q3)
 }
