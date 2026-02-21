@@ -107,43 +107,25 @@ fn breadth_first_traversal(
                     let #(queue, min_cost_table) = acc
                     let #(destination_city, destination_cost) = edge
                     let new_total_cost = total_cost_so_far + destination_cost
+                    let state = #(
+                      destination_city,
+                      new_total_cost,
+                      stops_taken + 1,
+                    )
+                    let updated_queue = queue |> list.append([state])
+                    let updated_min_cost_table =
+                      min_cost_table
+                      |> dict.insert(
+                        for: destination_city,
+                        insert: new_total_cost,
+                      )
 
                     case min_cost_table |> dict.get(destination_city) {
-                      Error(Nil) -> {
-                        let state = #(
-                          destination_city,
-                          new_total_cost,
-                          stops_taken + 1,
-                        )
-
-                        #(
-                          queue |> list.append([state]),
-                          min_cost_table
-                            |> dict.insert(
-                              for: destination_city,
-                              insert: new_total_cost,
-                            ),
-                        )
-                      }
+                      Error(Nil) -> #(updated_queue, updated_min_cost_table)
 
                       Ok(min_cost) ->
                         case new_total_cost < min_cost {
-                          True -> {
-                            let state = #(
-                              destination_city,
-                              new_total_cost,
-                              stops_taken + 1,
-                            )
-
-                            #(
-                              queue |> list.append([state]),
-                              min_cost_table
-                                |> dict.insert(
-                                  for: destination_city,
-                                  insert: new_total_cost,
-                                ),
-                            )
-                          }
+                          True -> #(updated_queue, updated_min_cost_table)
 
                           False -> acc
                         }
