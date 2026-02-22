@@ -1,5 +1,5 @@
-import graph/cheapest_flights_within_k_stops_787
+import binary/binary_gap_868
 
 pub fn main() {
-  cheapest_flights_within_k_stops_787.run()
+  binary_gap_868.run()
 }
