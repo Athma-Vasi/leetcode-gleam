@@ -1,5 +1,5 @@
-import binary/binary_gap_868
+import graph/sum_of_root_to_leaf_binary_numbers_1022
 
 pub fn main() {
-  binary_gap_868.run()
+  sum_of_root_to_leaf_binary_numbers_1022.run()
 }
