@@ -1,5 +1,5 @@
-import graph/sum_of_root_to_leaf_binary_numbers_1022
+import binary/check_if_a_string_contains_all_binary_codes_of_size_k_1461
 
 pub fn main() {
-  sum_of_root_to_leaf_binary_numbers_1022.run()
+  check_if_a_string_contains_all_binary_codes_of_size_k_1461.run()
 }
