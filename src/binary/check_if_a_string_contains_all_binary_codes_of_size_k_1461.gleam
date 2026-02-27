@@ -83,16 +83,16 @@ fn build_permutations_graph(
           right_descendant,
         ))
 
-      io.println("\n")
-      io.println("stack: " <> string.inspect(stack))
-      io.println("top: " <> string.inspect(top))
-      io.println("left_descendant: " <> string.inspect(left_descendant))
-      io.println("right_descendant: " <> string.inspect(right_descendant))
-      io.println("height: " <> string.inspect(height))
-      io.println("binary_node: " <> string.inspect(binary_node))
-      io.println("updated_graph: " <> string.inspect(updated_graph))
-      io.println("rest_stack: " <> string.inspect(rest_stack))
-      io.println("path_id: " <> string.inspect(path_id))
+      // io.println("\n")
+      // io.println("stack: " <> string.inspect(stack))
+      // io.println("top: " <> string.inspect(top))
+      // io.println("left_descendant: " <> string.inspect(left_descendant))
+      // io.println("right_descendant: " <> string.inspect(right_descendant))
+      // io.println("height: " <> string.inspect(height))
+      // io.println("binary_node: " <> string.inspect(binary_node))
+      // io.println("updated_graph: " <> string.inspect(updated_graph))
+      // io.println("rest_stack: " <> string.inspect(rest_stack))
+      // io.println("path_id: " <> string.inspect(path_id))
 
       case height + 1 == size {
         True -> {
@@ -114,6 +114,7 @@ fn build_permutations_graph(
 fn collect_permutations(
   graph: AdjacencyList,
   stack: List(State),
+  permutation: String,
   permutations: List(String),
 ) {
   case stack {
@@ -123,15 +124,34 @@ fn collect_permutations(
       let #(node, _height, _path_id) = top
 
       case graph |> dict.get(top) {
-        Error(Nil) -> collect_permutations(graph, rest_stack, permutations)
+        Error(Nil) -> {
+          io.println("\n")
+          io.println("node: " <> string.inspect(node))
+          io.println("top: " <> string.inspect(top))
+          io.println("rest_stack: " <> string.inspect(rest_stack))
+          io.println("permutations: " <> string.inspect(permutations))
+
+          collect_permutations(graph, rest_stack, "", [
+            permutation,
+            ..permutations
+          ])
+        }
 
         Ok(edges) -> {
           let #(left_descendant, right_descendant) = edges
 
+          io.println("\n")
+          io.println("node: " <> string.inspect(node))
+          io.println("top: " <> string.inspect(top))
+          io.println("edges: " <> string.inspect(edges))
+          io.println("rest_stack: " <> string.inspect(rest_stack))
+          io.println("permutations: " <> string.inspect(permutations))
+
           collect_permutations(
             graph,
             [left_descendant, right_descendant, ..rest_stack],
-            [node, ..permutations],
+            permutation <> node,
+            permutations,
           )
         }
       }
@@ -160,10 +180,10 @@ pub fn run() {
   // true
   // echo t(s1, k1)
   echo build_binary_permutations_islands(k1)
-    |> dict.each(fn(key, value) {
-      io.println("\n")
-      io.println("key: " <> string.inspect(key))
-      io.println("value: " <> string.inspect(value))
-    })
-  // |> collect_permutations([#("0", 1, 0)], [])
+    // |> dict.each(fn(key, value) {
+    //   io.println("\n")
+    //   io.println("key: " <> string.inspect(key))
+    //   io.println("value: " <> string.inspect(value))
+    // })
+    |> collect_permutations([#("0", 1, 1)], "", [])
 }
