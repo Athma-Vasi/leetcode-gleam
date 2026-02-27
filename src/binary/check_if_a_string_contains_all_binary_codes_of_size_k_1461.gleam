@@ -1,5 +1,4 @@
 import gleam/dict
-import gleam/io
 import gleam/list
 import gleam/set
 import gleam/string
@@ -14,47 +13,37 @@ type Edges =
 type AdjacencyList =
   dict.Dict(State, Edges)
 
-fn collect_next_k_elements(
+fn slide_window(
   stack: List(String),
   size: Int,
   count: Int,
   collected: String,
-) {
+) -> String {
   case count == size, stack {
     True, [] | True, [_top, ..] | False, [] -> collected
 
-    False, [top, ..rest] -> {
-      let new_count = count + 1
-      let new_collected = collected <> top
-
-      // io.println("\n")
-      io.println("new_count: " <> string.inspect(new_count))
-      io.println("new_collected: " <> new_collected)
-
-      collect_next_k_elements(rest, size, new_count, new_collected)
-    }
+    False, [top, ..rest] ->
+      slide_window(rest, size, count + 1, collected <> top)
   }
 }
 
-fn slide_window(
+fn collect_existing_substring_permutations(
   grapheme_stack: List(String),
   size: Int,
   substrings: set.Set(String),
-) {
+) -> set.Set(String) {
   case grapheme_stack {
     [] -> substrings
 
     [grapheme, ..rest_stack] -> {
-      let substring = collect_next_k_elements(rest_stack, size, 1, grapheme)
-
-      io.println("\n")
-      io.println("grapheme_stack: " <> string.inspect(grapheme_stack))
-      io.println("substring: " <> substring)
+      let substring = slide_window(rest_stack, size, 1, grapheme)
 
       case string.length(substring) < size {
-        True -> slide_window(rest_stack, size, substrings)
+        True ->
+          collect_existing_substring_permutations(rest_stack, size, substrings)
+
         False ->
-          slide_window(
+          collect_existing_substring_permutations(
             rest_stack,
             size,
             substrings |> set.insert(this: substring),
@@ -68,7 +57,7 @@ fn build_permutations_graph(
   graph: AdjacencyList,
   stack: List(#(String, Int, Int)),
   size: Int,
-) {
+) -> AdjacencyList {
   case stack {
     [] -> graph
 
@@ -83,75 +72,49 @@ fn build_permutations_graph(
           right_descendant,
         ))
 
-      // io.println("\n")
-      // io.println("stack: " <> string.inspect(stack))
-      // io.println("top: " <> string.inspect(top))
-      // io.println("left_descendant: " <> string.inspect(left_descendant))
-      // io.println("right_descendant: " <> string.inspect(right_descendant))
-      // io.println("height: " <> string.inspect(height))
-      // io.println("binary_node: " <> string.inspect(binary_node))
-      // io.println("updated_graph: " <> string.inspect(updated_graph))
-      // io.println("rest_stack: " <> string.inspect(rest_stack))
-      // io.println("path_id: " <> string.inspect(path_id))
-
       case height + 1 == size {
-        True -> {
-          build_permutations_graph(updated_graph, rest_stack, size)
-        }
+        True -> build_permutations_graph(updated_graph, rest_stack, size)
 
-        False -> {
+        False ->
           build_permutations_graph(
             updated_graph,
             [left_descendant, right_descendant, ..rest_stack],
             size,
           )
-        }
       }
     }
   }
 }
 
 fn collect_permutations(
-  graph: AdjacencyList,
+  tuple: #(AdjacencyList, List(String)),
   stack: List(State),
   permutation: String,
-  permutations: List(String),
 ) {
+  let #(graph, permutations) = tuple
+
   case stack {
-    [] -> permutations
+    [] -> #(graph, permutations)
 
     [top, ..rest_stack] -> {
       let #(node, _height, _path_id) = top
+      let updated_graph = graph |> dict.delete(top)
 
       case graph |> dict.get(top) {
-        Error(Nil) -> {
-          io.println("\n")
-          io.println("node: " <> string.inspect(node))
-          io.println("top: " <> string.inspect(top))
-          io.println("rest_stack: " <> string.inspect(rest_stack))
-          io.println("permutations: " <> string.inspect(permutations))
-
-          collect_permutations(graph, rest_stack, "", [
-            permutation,
-            ..permutations
-          ])
-        }
+        Error(Nil) ->
+          collect_permutations(
+            #(updated_graph, [permutation <> node, ..permutations]),
+            rest_stack,
+            permutation |> string.slice(at_index: -1, length: 1),
+          )
 
         Ok(edges) -> {
           let #(left_descendant, right_descendant) = edges
 
-          io.println("\n")
-          io.println("node: " <> string.inspect(node))
-          io.println("top: " <> string.inspect(top))
-          io.println("edges: " <> string.inspect(edges))
-          io.println("rest_stack: " <> string.inspect(rest_stack))
-          io.println("permutations: " <> string.inspect(permutations))
-
           collect_permutations(
-            graph,
+            #(updated_graph, permutations),
             [left_descendant, right_descendant, ..rest_stack],
             permutation <> node,
-            permutations,
           )
         }
       }
@@ -159,7 +122,7 @@ fn collect_permutations(
   }
 }
 
-fn build_binary_permutations_islands(size: Int) -> AdjacencyList {
+fn build_binary_permutations_islands_graph(size: Int) -> AdjacencyList {
   ["0", "1"]
   |> list.fold(from: dict.new(), with: fn(graph, binary) {
     case binary {
@@ -170,20 +133,78 @@ fn build_binary_permutations_islands(size: Int) -> AdjacencyList {
   })
 }
 
+fn traverse_archipelago(tuple: #(AdjacencyList, List(String))) {
+  let #(graph, permutations) = tuple
+
+  case dict.size(graph) == 0 {
+    True -> permutations
+
+    False -> {
+      // for island: "0"
+      collect_permutations(#(graph, []), [#("0", 1, 1)], "")
+      // for island: "1"
+      |> collect_permutations([#("1", 1, -1)], "")
+      |> traverse_archipelago
+    }
+  }
+}
+
+fn compare_permutations(
+  existing_substring_permutations: set.Set(String),
+  expected_substring_permutations: List(String),
+) {
+  expected_substring_permutations
+  |> list.fold(from: True, with: fn(_comparison, permutation) {
+    existing_substring_permutations |> set.contains(this: permutation)
+  })
+}
+
+fn compare_if_size_is_one(str: String) {
+  ["0", "1"]
+  |> list.fold(from: True, with: fn(_comparison, binary) {
+    str |> string.contains(binary)
+  })
+}
+
 fn t(str: String, size: Int) {
-  str |> string.to_graphemes |> slide_window(size, set.new())
+  case size == 1 {
+    True -> compare_if_size_is_one(str)
+
+    False -> {
+      let existing_substring_permutations =
+        collect_existing_substring_permutations(
+          string.to_graphemes(str),
+          size,
+          set.new(),
+        )
+
+      let initial_permutations = []
+      let permutations_islands_graph =
+        build_binary_permutations_islands_graph(size)
+      let expected_substring_permutations =
+        traverse_archipelago(#(permutations_islands_graph, initial_permutations))
+
+      compare_permutations(
+        existing_substring_permutations,
+        expected_substring_permutations,
+      )
+    }
+  }
 }
 
 pub fn run() {
   let s1 = "00110110"
-  let k1 = 3
-  // true
-  // echo t(s1, k1)
-  echo build_binary_permutations_islands(k1)
-    // |> dict.each(fn(key, value) {
-    //   io.println("\n")
-    //   io.println("key: " <> string.inspect(key))
-    //   io.println("value: " <> string.inspect(value))
-    // })
-    |> collect_permutations([#("0", 1, 1)], "", [])
+  let k1 = 2
+  // True
+  echo t(s1, k1)
+
+  let s2 = "0110"
+  let k2 = 1
+  // True
+  echo t(s2, k2)
+
+  let s3 = "0110"
+  let k3 = 2
+  // False
+  echo t(s3, k3)
 }
