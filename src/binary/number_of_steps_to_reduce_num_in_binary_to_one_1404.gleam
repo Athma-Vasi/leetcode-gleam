@@ -27,7 +27,7 @@ fn bits_to_int(bits: List(Int)) -> Int {
 /// Recursively reduces a number to 1 and counts the steps taken.
 /// Even numbers: divide by 2. Odd numbers: add 1. Continues until reaching 1.
 /// Time Complexity: O(log n) where n is the input number
-/// Space Complexity: O(log n) for recursion stack depth
+/// Space Complexity: O(1) as function is tail-recursive
 fn reduce_num(reduced: Int, step_count: Int) {
   case reduced == 1 {
     True -> step_count
