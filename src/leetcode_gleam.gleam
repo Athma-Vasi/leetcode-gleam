@@ -1,5 +1,5 @@
-import binary/check_if_a_string_contains_all_binary_codes_of_size_k_1461
+import binary/number_of_steps_to_reduce_num_in_binary_to_one_1404
 
 pub fn main() {
-  check_if_a_string_contains_all_binary_codes_of_size_k_1461.run()
+  number_of_steps_to_reduce_num_in_binary_to_one_1404.run()
 }
