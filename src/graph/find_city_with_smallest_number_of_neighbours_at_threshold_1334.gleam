@@ -3,28 +3,43 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/option
+import gleam/result
+import gleam/set
 import gleam/string
+import gleamy/priority_queue as p_queue
 
-type From =
-  Int
-
-type To =
+type Node =
   Int
 
 type Distance =
   Int
 
+type Ancestor =
+  Int
+
 type BiDirectionalEdge =
-  #(From, To, Distance)
+  #(Node, Node, Distance)
 
 type BiDirectionalEdges =
   List(BiDirectionalEdge)
 
 type AdjacencyList =
-  dict.Dict(From, List(#(To, Distance)))
+  dict.Dict(Node, List(#(Node, Distance)))
 
-type DistancesTable =
-  dict.Dict(#(From, To), Distance)
+type DistanceAncestorTable =
+  dict.Dict(Node, #(Distance, Ancestor))
+
+type PriorityQueue =
+  p_queue.Queue(#(Node, Distance))
+
+type DistanceTable =
+  dict.Dict(#(Node, Node), Distance)
+
+type ExploredStack =
+  List(#(Node, Distance, Ancestor))
+
+type AncestorTable =
+  dict.Dict(Node, Node)
 
 fn build_graph(from bi_directional_edges: BiDirectionalEdges) -> AdjacencyList {
   bi_directional_edges
@@ -45,6 +60,200 @@ fn build_graph(from bi_directional_edges: BiDirectionalEdges) -> AdjacencyList {
       }
     })
   })
+}
+
+fn build_distance_table(
+  bi_directional_edges: BiDirectionalEdges,
+) -> DistanceTable {
+  bi_directional_edges
+  |> list.fold(from: dict.new(), with: fn(table, edge) {
+    let #(from, to, distance) = edge
+
+    table
+    |> dict.insert(for: #(from, from), insert: 0)
+    |> dict.insert(for: #(from, to), insert: distance)
+    |> dict.insert(for: #(to, to), insert: 0)
+  })
+}
+
+fn create_p_queue() {
+  p_queue.new(fn(t1, t2) {
+    let #(_node1, accum_distance1) = t1
+    let #(_node2, accum_distance2) = t2
+    accum_distance1 |> int.compare(accum_distance2)
+  })
+}
+
+fn initialize_priority_queue(
+  bi_directional_edges: BiDirectionalEdges,
+  start_node: Int,
+) -> PriorityQueue {
+  bi_directional_edges
+  |> list.fold(from: create_p_queue(), with: fn(acc, bi_directional_edge) {
+    let #(from, to, _distance) = bi_directional_edge
+
+    case start_node == from, start_node == to {
+      True, True | False, False -> acc
+
+      True, False -> acc |> p_queue.push(#(from, 0))
+
+      False, True -> acc |> p_queue.push(#(to, 0))
+    }
+  })
+}
+
+fn update_node_in_queue(
+  queue: PriorityQueue,
+  node_to_update: Node,
+  accum_distance_to_update: Distance,
+) {
+  queue
+  |> p_queue.to_list
+  |> list.fold(from: create_p_queue(), with: fn(acc, tuple) {
+    let #(curr_node, _curr_accum_distance) = tuple
+    case curr_node == node_to_update {
+      True -> acc |> p_queue.push(#(curr_node, accum_distance_to_update))
+      False -> acc |> p_queue.push(tuple)
+    }
+  })
+}
+
+fn update_node_in_distance_table(
+  distance_table: DistanceTable,
+  from_to_to: #(Node, Node),
+  accum_distance_to_update: Distance,
+) {
+  distance_table
+  |> dict.insert(for: from_to_to, insert: accum_distance_to_update)
+}
+
+fn update_node_in_ancestor_table(
+  ancestor_table: AncestorTable,
+  node_to_update: Node,
+  accum_distance_to_update: Distance,
+) {
+  ancestor_table
+  |> dict.insert(for: node_to_update, insert: accum_distance_to_update)
+}
+
+fn djikstra(
+  graph: AdjacencyList,
+  explored_stack: ExploredStack,
+  unexplored_queue: PriorityQueue,
+  explored_set: set.Set(Node),
+  distance_table: DistanceTable,
+  ancestor_table: AncestorTable,
+) {
+  // initialize pq
+  // select the value with the smallest accum_distance first
+  // grab its edges from graph
+  // iterate through edges 
+  // if the edge has been visited, ignore
+  // if new, accum_distance of the edgeent vertex plus
+  // the weight to the adjacent vertex < adjacent vertex's accum_distance
+  // if yes, update the adjacent vertex's accum_distance in table
+
+  case explored_stack, p_queue.pop(unexplored_queue) {
+    [], Error(Nil) -> {
+      explored_stack
+    }
+    // initial: starting node
+    [], Ok(tuple) -> {
+      let #(node_and_distance, queue) = tuple
+      let #(node, accum_distance) = node_and_distance
+      djikstra(
+        graph,
+        [#(node, accum_distance, node), ..explored_stack],
+        queue,
+        explored_set |> set.insert(this: node),
+        distance_table,
+        ancestor_table,
+      )
+    }
+    [_top, ..], Error(Nil) -> {
+      explored_stack
+    }
+    [top, ..rest_stack], Ok(tuple) -> {
+      let #(node_and_distance, queue) = tuple
+      let #(priority_node, priority_accum_distance) = node_and_distance
+      let #(edge_node, edge_accum_distance, edge_parent) = top
+      let edges = graph |> dict.get(priority_node) |> result.unwrap(or: [])
+      let #(
+        updated_explored_stack,
+        updated_distance_table,
+        updated_ancestor_table,
+      ) =
+        edges
+        |> list.fold(
+          from: #(explored_stack, distance_table, ancestor_table),
+          with: fn(acc, edge) {
+            let #(explored_stack, distance_table, ancestor_table) = acc
+            let #(adj_node, weight) = edge
+
+            case
+              explored_set |> set.contains(this: priority_node),
+              distance_table |> dict.get(#(priority_node, edge_node)),
+              ancestor_table |> dict.get(priority_node)
+            {
+              True, _, _ -> acc
+              False, Error(Nil), _ -> acc
+              False, _, Error(Nil) -> acc
+              False, Ok(distance_from_table), Ok(ancestor_from_table) -> {
+                case edge_accum_distance + weight < priority_accum_distance {
+                  True -> {
+                    let updated_distance_table =
+                      update_node_in_distance_table(
+                        distance_table,
+                        #(priority_node, edge_node),
+                        edge_accum_distance + weight,
+                      )
+                    let updated_ancestor_table =
+                      update_node_in_ancestor_table(
+                        ancestor_table,
+                        edge_node,
+                        priority_node,
+                      )
+                    let updated_explored_stack = [
+                      #(priority_node, edge_accum_distance + weight, edge_node),
+                      ..explored_stack
+                    ]
+                    #(
+                      updated_explored_stack,
+                      updated_distance_table,
+                      updated_ancestor_table,
+                    )
+                  }
+                  False -> acc
+                }
+              }
+              // True -> acc
+              // False -> {
+              //   let #(adj_node, weight) = edge
+              //   case edge_accum_distance + weight < priority_accum_distance {
+              //     True -> {
+              //       todo
+              //       // djikstra(
+              //       //   graph,
+              //       //   [#(priority_node,edge_accum_distance+weight,)]
+              //       // )
+              //     }
+              //     False -> acc
+              //   }
+              // }
+            }
+          },
+        )
+
+      djikstra(
+        graph,
+        explored_stack,
+        unexplored_queue,
+        explored_set,
+        distance_table,
+        ancestor_table,
+      )
+    }
+  }
 }
 
 fn t(
@@ -70,20 +279,7 @@ pub fn run() {
   // 3
   t(n1, edges1, dt1)
 }
-// fn build_distances_table(
-//   bi_directional_edges: BiDirectionalEdges,
-// ) -> DistancesTable {
-//   bi_directional_edges
-//   |> list.fold(from: dict.new(), with: fn(table, edge) {
-//     let #(from, to, distance) = edge
-
-//     table
-//     |> dict.insert(for: #(from, from), insert: 0)
-//     |> dict.insert(for: #(from, to), insert: distance)
-//   })
-// }
-
-// fn floyd_warshall_traversal(distances_table: DistancesTable, n: Int) {
+// fn floyd_warshall_traversal(distance_table: DistanceTable, n: Int) {
 //   let #(intermediates, froms, tos) = #(
 //     list.range(1, n),
 //     list.range(1, n),
@@ -91,7 +287,7 @@ pub fn run() {
 //   )
 
 //   intermediates
-//   |> list.fold(from: distances_table, with: fn(updated_table, intermediate) {
+//   |> list.fold(from: distance_table, with: fn(updated_table, intermediate) {
 //     froms
 //     |> list.fold(from: updated_table, with: fn(updated_table, from) {
 //       tos
@@ -106,9 +302,9 @@ pub fn run() {
 //         )
 
 //         case
-//           distances_table |> dict.get(#(from, to)),
-//           distances_table |> dict.get(#(from, intermediate)),
-//           distances_table |> dict.get(#(intermediate, to))
+//           distance_table |> dict.get(#(from, to)),
+//           distance_table |> dict.get(#(from, intermediate)),
+//           distance_table |> dict.get(#(intermediate, to))
 //         {
 //           // Error(Nil), Error(Nil), Error(Nil) -> {
 //           //   updated_table

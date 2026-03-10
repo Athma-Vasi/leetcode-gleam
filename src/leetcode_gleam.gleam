@@ -1,5 +1,5 @@
-import binary/concatenation_of_consecutive_binary_numbers_1680
+import graph/binary_tree_preorder_traversal_144
 
 pub fn main() {
-  concatenation_of_consecutive_binary_numbers_1680.run()
+  binary_tree_preorder_traversal_144.run()
 }
