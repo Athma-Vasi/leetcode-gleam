@@ -1,5 +1,5 @@
-import graph/binary_tree_preorder_traversal_144
+import misc/minimum_distance_between_three_equal_elements_i_3740
 
 pub fn main() {
-  binary_tree_preorder_traversal_144.run()
+  minimum_distance_between_three_equal_elements_i_3740.run()
 }
