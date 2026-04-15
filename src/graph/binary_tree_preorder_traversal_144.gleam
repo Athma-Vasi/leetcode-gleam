@@ -1,20 +1,9 @@
 import gleam/dict
-import gleam/io
 import gleam/list
 import gleam/option
-import gleam/string
 
 type AdjacencyList =
   dict.Dict(Int, #(Result(Int, Nil), Result(Int, Nil)))
-
-fn build_index_table(
-  root: List(Result(Int, Nil)),
-) -> dict.Dict(Int, Result(Int, Nil)) {
-  root
-  |> list.index_fold(from: dict.new(), with: fn(table, num, index) {
-    table |> dict.insert(index, num)
-  })
-}
 
 fn update_left_descendant(graph, key: Int, value_result: Result(Int, Nil)) {
   graph
