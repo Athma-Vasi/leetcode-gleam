@@ -1,5 +1,5 @@
-import misc/minimum_distance_between_three_equal_elements_ii_3741
+import misc/two_furthest_houses_with_different_colours_2078
 
 pub fn main() {
-  minimum_distance_between_three_equal_elements_ii_3741.run()
+  two_furthest_houses_with_different_colours_2078.run()
 }
