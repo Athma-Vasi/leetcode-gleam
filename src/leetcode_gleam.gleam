@@ -1,5 +1,5 @@
-import misc/two_furthest_houses_with_different_colours_2078
+import misc/count_number_of_special_characters_i_3120
 
 pub fn main() {
-  two_furthest_houses_with_different_colours_2078.run()
+  count_number_of_special_characters_i_3120.run()
 }
