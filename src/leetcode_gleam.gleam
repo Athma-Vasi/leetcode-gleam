@@ -1,5 +1,5 @@
-import misc/count_number_of_special_characters_i_3120
+import misc/minimum_element_after_replacement_with_digit_sum_3300
 
 pub fn main() {
-  count_number_of_special_characters_i_3120.run()
+  minimum_element_after_replacement_with_digit_sum_3300.run()
 }
