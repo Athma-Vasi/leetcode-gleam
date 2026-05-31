@@ -1,5 +1,5 @@
-import misc/minimum_element_after_replacement_with_digit_sum_3300
+import misc/destroying_asteroids_2126
 
 pub fn main() {
-  minimum_element_after_replacement_with_digit_sum_3300.run()
+  destroying_asteroids_2126.run()
 }
