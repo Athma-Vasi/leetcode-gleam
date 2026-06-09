@@ -1,5 +1,5 @@
-import misc/destroying_asteroids_2126
+import misc/maximum_total_subarray_value_i_3689
 
 pub fn main() {
-  destroying_asteroids_2126.run()
+  maximum_total_subarray_value_i_3689.run()
 }
