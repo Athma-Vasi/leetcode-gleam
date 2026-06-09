@@ -6,44 +6,44 @@ type SumsKind {
   Suffix
 }
 
-// Builds cumulative sums in one pass using an accumulator. Values are
-// prepended in O(1), then reversed once to restore left-to-right order.
+// Builds exclusive prefix sums (left sums), where index 0 maps to 0.
+// Values are prepended in O(1), then reversed once to restore input order.
 // Time complexity: O(n)
 // Space complexity: O(n)
-fn accumulate_sums(from nums: List(Int)) {
+fn create_prefix_sums(from nums: List(Int)) {
   let initial_prev = 0
   let initial_prefix_sums = []
   let initial_acc = #(initial_prev, initial_prefix_sums)
   let length = list.length(nums)
 
-  let #(_prev, sums) =
+  let #(_prev, prefix_sums) =
     nums
     |> list.index_fold(from: initial_acc, with: fn(acc, num, index) {
-      let #(prev, sums) = acc
+      let #(prev, prefix_sums) = acc
 
       case index == 0 {
-        True -> #(num, [num, 0, ..sums])
-        False -> #(prev + num, [prev + num, ..sums])
+        True -> #(num, [num, 0, ..prefix_sums])
+        False -> #(prev + num, [prev + num, ..prefix_sums])
       }
     })
 
-  sums |> list.reverse |> list.take(up_to: length)
+  prefix_sums |> list.reverse |> list.take(up_to: length)
 }
 
-// Produces either prefix or suffix cumulative sums.
-// Suffix sums are computed by reversing the input, reusing prefix logic, then
-// reversing the result back.
+// Produces either left sums (prefix) or right sums (suffix).
+// Suffix sums are computed by reversing input, reusing prefix construction,
+// and reversing the result back to original indexing.
 // Time complexity: O(n)
 // Space complexity: O(n)
 fn create_sums(nums: List(Int), sums_kind: SumsKind) {
   case sums_kind {
-    Prefix -> accumulate_sums(from: nums)
+    Prefix -> create_prefix_sums(from: nums)
 
-    Suffix -> nums |> list.reverse |> accumulate_sums |> list.reverse
+    Suffix -> nums |> list.reverse |> create_prefix_sums |> list.reverse
   }
 }
 
-// Computes the absolute difference between aligned prefix and suffix sums.
+// Computes the absolute difference between aligned left and right sums.
 // Differences are prepended during recursion and reversed once at completion.
 // Time complexity: O(n)
 // Space complexity: O(n)
