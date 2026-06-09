@@ -103,10 +103,9 @@ fn generate_values_set_and_descendants_set(
 // The root is the only value that never appears as a descendant. 
 // Time complexity: O(n log n)
 // Space complexity: O(1) auxiliary
-fn determine_root(
-  from descendants_set: DescendantsSet,
-  and values_set: ValuesSet,
-) -> Int {
+fn determine_root(from sets: #(DescendantsSet, ValuesSet)) -> Int {
+  let #(descendants_set, values_set) = sets
+
   values_set
   |> set.difference(descendants_set)
   |> set.to_list
@@ -121,9 +120,9 @@ fn construct_tree_and_return_root(
   descriptions: List(Description),
 ) -> #(AdjacencyList, Int) {
   let binary_tree = generate_binary_tree(from: descriptions)
-  let #(descendants_set, values_set) =
+  let root =
     generate_values_set_and_descendants_set(from: descriptions)
-  let root = determine_root(from: descendants_set, and: values_set)
+    |> determine_root
 
   #(binary_tree, root)
 }
