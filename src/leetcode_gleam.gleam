@@ -1,5 +1,5 @@
-import graph/create_binary_tree_from_description_2196
+import prefix_suffix/left_and_right_sum_differences_2574
 
 pub fn main() {
-  create_binary_tree_from_description_2196.run()
+  left_and_right_sum_differences_2574.run()
 }
