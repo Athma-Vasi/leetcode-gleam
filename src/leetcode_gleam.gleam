@@ -1,5 +1,5 @@
-import misc/maximum_total_subarray_value_i_3689
+import graph/create_binary_tree_from_description_2196
 
 pub fn main() {
-  maximum_total_subarray_value_i_3689.run()
+  create_binary_tree_from_description_2196.run()
 }
