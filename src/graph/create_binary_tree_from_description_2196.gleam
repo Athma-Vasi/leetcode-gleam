@@ -36,7 +36,7 @@ type ValuesSet =
 // dictionary entry.
 // Time complexity: O(n)
 // Space complexity: O(n)
-fn generate_binary_tree(from descriptions: List(Description)) {
+fn generate_binary_tree(from descriptions: List(Description)) -> AdjacencyList {
   let initial_binary_tree: AdjacencyList = dict.new()
 
   descriptions
@@ -83,7 +83,7 @@ fn generate_binary_tree(from descriptions: List(Description)) {
 // Space complexity: O(n)
 fn generate_values_set_and_descendants_set(
   from descriptions: List(Description),
-) {
+) -> #(DescendantsSet, ValuesSet) {
   let initial_descendants_set: DescendantsSet = set.new()
   let initial_values_set: ValuesSet = set.new()
   let initial_acc = #(initial_descendants_set, initial_values_set)
@@ -100,14 +100,13 @@ fn generate_values_set_and_descendants_set(
   })
 }
 
-// The root is the only value that never appears as a descendant. This scan
-// checks each value against the descendants set and returns the remaining one.
+// The root is the only value that never appears as a descendant. 
 // Time complexity: O(n log n)
-// Space complexity: O(n) auxiliary
+// Space complexity: O(1) auxiliary
 fn determine_root(
   from descendants_set: DescendantsSet,
   and values_set: ValuesSet,
-) {
+) -> Int {
   values_set
   |> set.difference(descendants_set)
   |> set.to_list
@@ -118,7 +117,9 @@ fn determine_root(
 // Produces the adjacency representation of the tree and the value of the root.
 // Overall time complexity: O(n log n)
 // Overall space complexity: O(n)
-fn construct_tree_and_return_root(descriptions: List(Description)) {
+fn construct_tree_and_return_root(
+  descriptions: List(Description),
+) -> #(AdjacencyList, Int) {
   let binary_tree = generate_binary_tree(from: descriptions)
   let #(descendants_set, values_set) =
     generate_values_set_and_descendants_set(from: descriptions)
