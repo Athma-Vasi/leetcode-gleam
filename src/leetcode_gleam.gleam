@@ -1,5 +1,5 @@
-import misc/minimum_cost_of_buying_candies_with_discount_2144
+import misc/check_if_array_is_sorted_and_rotated_1752
 
 pub fn main() {
-  minimum_cost_of_buying_candies_with_discount_2144.run()
+  check_if_array_is_sorted_and_rotated_1752.run()
 }
