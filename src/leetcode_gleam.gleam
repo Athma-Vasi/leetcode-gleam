@@ -1,5 +1,5 @@
-import misc/total_waviness_of_numbers_in_range_ii_3753
+import misc/minimum_cost_of_buying_candies_with_discount_2144
 
 pub fn main() {
-  total_waviness_of_numbers_in_range_ii_3753.run()
+  minimum_cost_of_buying_candies_with_discount_2144.run()
 }
