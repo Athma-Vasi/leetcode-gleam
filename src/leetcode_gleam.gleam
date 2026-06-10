@@ -1,5 +1,5 @@
-import prefix_suffix/left_and_right_sum_differences_2574
+import misc/total_waviness_of_numbers_in_range_i_3751
 
 pub fn main() {
-  left_and_right_sum_differences_2574.run()
+  total_waviness_of_numbers_in_range_i_3751.run()
 }
