@@ -1,5 +1,5 @@
-import misc/check_if_array_is_sorted_and_rotated_1752
+import misc/separate_the_digits_in_an_array_2553
 
 pub fn main() {
-  check_if_array_is_sorted_and_rotated_1752.run()
+  separate_the_digits_in_an_array_2553.run()
 }
