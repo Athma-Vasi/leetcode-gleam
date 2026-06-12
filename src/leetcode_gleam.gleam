@@ -1,5 +1,5 @@
-import misc/separate_the_digits_in_an_array_2553
+import misc/furthest_point_from_origin_2833
 
 pub fn main() {
-  separate_the_digits_in_an_array_2553.run()
+  furthest_point_from_origin_2833.run()
 }
