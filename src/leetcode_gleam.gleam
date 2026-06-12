@@ -1,5 +1,5 @@
-import misc/furthest_point_from_origin_2833
+import misc/minimum_common_value_2540
 
 pub fn main() {
-  furthest_point_from_origin_2833.run()
+  minimum_common_value_2540.run()
 }
