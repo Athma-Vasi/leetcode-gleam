@@ -1,5 +1,5 @@
-import prefix_suffix/find_length_of_longest_common_prefix_3043
+import misc/weighted_word_mapping_3838
 
 pub fn main() {
-  find_length_of_longest_common_prefix_3043.run()
+  weighted_word_mapping_3838.run()
 }
