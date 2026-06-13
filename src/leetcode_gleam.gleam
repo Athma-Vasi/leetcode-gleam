@@ -1,5 +1,5 @@
-import misc/minimum_common_value_2540
+import prefix_suffix/find_length_of_longest_common_prefix_3043
 
 pub fn main() {
-  minimum_common_value_2540.run()
+  find_length_of_longest_common_prefix_3043.run()
 }
