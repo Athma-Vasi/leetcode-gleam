@@ -1,5 +1,5 @@
-import misc/weighted_word_mapping_3838
+import misc/process_string_with_special_operations_i_3612
 
 pub fn main() {
-  weighted_word_mapping_3838.run()
+  process_string_with_special_operations_i_3612.run()
 }
