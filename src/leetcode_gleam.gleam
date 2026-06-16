@@ -1,5 +1,5 @@
-import misc/process_string_with_special_operations_i_3612
+import misc/maximum_twin_sum_of_linked_list_2130
 
 pub fn main() {
-  process_string_with_special_operations_i_3612.run()
+  maximum_twin_sum_of_linked_list_2130.run()
 }
