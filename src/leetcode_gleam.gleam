@@ -1,5 +1,5 @@
-import misc/maximum_twin_sum_of_linked_list_2130
+import misc/delete_middle_node_of_linked_list_2095
 
 pub fn main() {
-  maximum_twin_sum_of_linked_list_2130.run()
+  delete_middle_node_of_linked_list_2095.run()
 }
