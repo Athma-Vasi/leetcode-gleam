@@ -1,5 +1,5 @@
-import misc/delete_middle_node_of_linked_list_2095
+import misc/shortest_distance_to_target_string_in_circular_array_2515
 
 pub fn main() {
-  delete_middle_node_of_linked_list_2095.run()
+  shortest_distance_to_target_string_in_circular_array_2515.run()
 }
