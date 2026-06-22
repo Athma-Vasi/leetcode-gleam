@@ -1,5 +1,5 @@
-import misc/shortest_distance_to_target_string_in_circular_array_2515
+import misc/angle_between_hands_of_a_clock_1344
 
 pub fn main() {
-  shortest_distance_to_target_string_in_circular_array_2515.run()
+  angle_between_hands_of_a_clock_1344.run()
 }
