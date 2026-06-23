@@ -1,5 +1,5 @@
-import misc/angle_between_hands_of_a_clock_1344
+import misc/maximum_number_of_balloons_1189
 
 pub fn main() {
-  angle_between_hands_of_a_clock_1344.run()
+  maximum_number_of_balloons_1189.run()
 }
