@@ -3,48 +3,54 @@ import gleam/list
 import gleam/option
 import gleam/string
 
-fn create_freq_table(text: String) {
-  text
+fn build_char_frequency_map(input_text: String) {
+  input_text
   |> string.to_graphemes
-  |> list.fold(from: dict.new(), with: fn(table, grapheme) {
-    table
-    |> dict.upsert(update: grapheme, with: fn(freq_maybe) {
-      case freq_maybe {
+  |> list.fold(from: dict.new(), with: fn(frequency_map, char) {
+    frequency_map
+    |> dict.upsert(update: char, with: fn(existing_freq_opt) {
+      case existing_freq_opt {
         option.None -> 1
-        option.Some(freq) -> freq + 1
+        option.Some(count) -> count + 1
       }
     })
   })
 }
 
-const balloons = "balloon"
+const target_word = "balloon"
 
-fn is_instance_possible(
-  freq_table: dict.Dict(String, Int),
-  target: List(String),
+fn try_consume_target_once(
+  remaining_frequency_map: dict.Dict(String, Int),
+  target_chars: List(String),
 ) {
-  case target {
-    [] -> #(True, freq_table)
+  case target_chars {
+    [] -> #(True, remaining_frequency_map)
 
-    [char, ..rest_target] -> {
-      case freq_table |> dict.get(char) {
-        Error(Nil) -> #(False, freq_table)
+    [required_char, ..remaining_target_chars] -> {
+      case remaining_frequency_map |> dict.get(required_char) {
+        Error(Nil) -> #(False, remaining_frequency_map)
 
-        Ok(freq) -> {
-          case freq == 0 {
-            True -> #(False, freq_table)
+        Ok(count) -> {
+          case count == 0 {
+            True -> #(False, remaining_frequency_map)
 
             False -> {
-              let updated_table =
-                freq_table
-                |> dict.upsert(update: char, with: fn(freq_maybe) {
-                  case freq_maybe {
-                    option.None -> 0
-                    option.Some(freq) -> freq - 1
-                  }
-                })
+              let updated_frequency_map =
+                remaining_frequency_map
+                |> dict.upsert(
+                  update: required_char,
+                  with: fn(existing_freq_opt) {
+                    case existing_freq_opt {
+                      option.None -> 0
+                      option.Some(count) -> count - 1
+                    }
+                  },
+                )
 
-              is_instance_possible(updated_table, rest_target)
+              try_consume_target_once(
+                updated_frequency_map,
+                remaining_target_chars,
+              )
             }
           }
         }
@@ -53,45 +59,57 @@ fn is_instance_possible(
   }
 }
 
-fn repeat_balloons(repeated: List(String), factor: Int) {
-  case factor == 0 {
-    True -> repeated
-    False -> repeat_balloons([balloons, ..repeated], factor - 1)
+fn build_length_bound_targets(
+  candidate_targets: List(String),
+  max_instances_by_length: Int,
+) {
+  case max_instances_by_length == 0 {
+    True -> candidate_targets
+
+    False ->
+      build_length_bound_targets(
+        [target_word, ..candidate_targets],
+        max_instances_by_length - 1,
+      )
   }
 }
 
-fn find_maximum_balloons(text: String) {
-  let length = string.length(text)
-  let factor = length / string.length(balloons)
-  let repeated = repeat_balloons([], factor)
-  let freq_table = create_freq_table(text)
+fn count_max_target_instances(input_text: String) {
+  let input_length = string.length(input_text)
+  let max_instances_by_length = input_length / string.length(target_word)
+  let candidate_targets =
+    build_length_bound_targets([], max_instances_by_length)
+  let frequency_map = build_char_frequency_map(input_text)
 
-  let #(instances, _updated_table) =
-    repeated
-    |> list.fold(from: #(0, freq_table), with: fn(acc, target) {
-      let #(instances, freq_table) = acc
-      let #(is_possible, updated_table) =
-        is_instance_possible(freq_table, target |> string.to_graphemes)
+  let #(formed_instances, _updated_frequency_map) =
+    candidate_targets
+    |> list.fold(from: #(0, frequency_map), with: fn(state, target_word_chars) {
+      let #(formed_instances, remaining_frequency_map) = state
+      let #(can_form_instance, updated_frequency_map) =
+        try_consume_target_once(
+          remaining_frequency_map,
+          target_word_chars |> string.to_graphemes,
+        )
 
-      case is_possible {
-        True -> #(instances + 1, updated_table)
-        False -> #(instances, updated_table)
+      case can_form_instance {
+        True -> #(formed_instances + 1, updated_frequency_map)
+        False -> #(formed_instances, updated_frequency_map)
       }
     })
 
-  instances
+  formed_instances
 }
 
 pub fn run() {
-  let t1 = "nlaebolko"
+  let sample_input_1 = "nlaebolko"
   // 1
-  echo find_maximum_balloons(t1)
+  echo count_max_target_instances(sample_input_1)
 
-  let t2 = "loonbalxballpoon"
+  let sample_input_2 = "loonbalxballpoon"
   // 2
-  echo find_maximum_balloons(t2)
+  echo count_max_target_instances(sample_input_2)
 
-  let t3 = "leetcode"
+  let sample_input_3 = "leetcode"
   // 0
-  echo find_maximum_balloons(t3)
+  echo count_max_target_instances(sample_input_3)
 }
