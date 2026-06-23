@@ -3,6 +3,11 @@ import gleam/list
 import gleam/option
 import gleam/string
 
+const target_word = "balloon"
+
+// Builds a frequency map of characters in the input text.
+// Time: O(n * d), where n is input length and d is dictionary update cost.
+// Space: O(u), where u is the number of distinct characters.
 fn build_char_frequency_map(input_text: String) {
   input_text
   |> string.to_graphemes
@@ -17,8 +22,10 @@ fn build_char_frequency_map(input_text: String) {
   })
 }
 
-const target_word = "balloon"
-
+// Attempts to consume exactly one target instance from the remaining frequency map.
+// Returns whether consumption was possible and the updated map state.
+// Time: O(k * d), where k is target length and d is dictionary lookup/update cost.
+// Space: O(k) due to recursion depth.
 fn try_consume_target_once(
   remaining_frequency_map: dict.Dict(String, Int),
   target_chars: List(String),
@@ -59,6 +66,10 @@ fn try_consume_target_once(
   }
 }
 
+// Constructs a list of target words capped by the length-based upper bound.
+// This does not guarantee feasibility by character counts; it only sets a max iteration cap.
+// Time: O(m), where m is max_instances_by_length.
+// Space: O(m) for the list of candidate targets.
 fn build_length_bound_targets(
   candidate_targets: List(String),
   max_instances_by_length: Int,
@@ -74,6 +85,14 @@ fn build_length_bound_targets(
   }
 }
 
+// Counts the maximum number of target instances that can be formed from input_text.
+// Strategy:
+// 1) Build character frequencies.
+// 2) Build a length-based upper bound list of candidate targets.
+// 3) Greedily consume one target at a time while possible.
+// Time: O(n * d + m * k * d), where n=input length, m=length upper bound, k=target length,
+//       and d=dictionary operation cost.
+// Space: O(u + m), where u is distinct character count.
 fn count_max_target_instances(input_text: String) {
   let input_length = string.length(input_text)
   let max_instances_by_length = input_length / string.length(target_word)
@@ -101,15 +120,15 @@ fn count_max_target_instances(input_text: String) {
 }
 
 pub fn run() {
+  // Example 1: expected 1
   let sample_input_1 = "nlaebolko"
-  // 1
   echo count_max_target_instances(sample_input_1)
 
+  // Example 2: expected 2
   let sample_input_2 = "loonbalxballpoon"
-  // 2
   echo count_max_target_instances(sample_input_2)
 
+  // Example 3: expected 0
   let sample_input_3 = "leetcode"
-  // 0
   echo count_max_target_instances(sample_input_3)
 }
