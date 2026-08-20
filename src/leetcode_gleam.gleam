@@ -1,5 +1,5 @@
-import misc/maximum_number_of_balloons_1189
+import misc/distribute_elements_into_two_arrays_3069
 
 pub fn main() {
-  maximum_number_of_balloons_1189.run()
+  distribute_elements_into_two_arrays_3069.run()
 }
