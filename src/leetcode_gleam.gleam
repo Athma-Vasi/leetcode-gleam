@@ -1,5 +1,5 @@
-import misc/distribute_elements_into_two_arrays_3069
+import stack/evaluate_the_bracket_pairs_of_a_string_1807
 
 pub fn main() {
-  distribute_elements_into_two_arrays_3069.run()
+  evaluate_the_bracket_pairs_of_a_string_1807.run()
 }
