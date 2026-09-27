@@ -50,7 +50,7 @@ pub fn run() {
 
   let s2 = "hi(name)"
   let k2 = [#("a", "b")]
-  // hi(name)
+  // hi?
   echo t(s2, k2)
 
   let s3 = "(a)(a)(a)aaa"

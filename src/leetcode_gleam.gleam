@@ -1,5 +1,5 @@
-import stack/evaluate_the_bracket_pairs_of_a_string_1807
+import misc/reverse_degree_of_a_string_3498
 
 pub fn main() {
-  evaluate_the_bracket_pairs_of_a_string_1807.run()
+  reverse_degree_of_a_string_3498.run()
 }
