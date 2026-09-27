@@ -1,5 +1,5 @@
-import misc/reverse_degree_of_a_string_3498
+import misc/unique_3_digit_even_numbers_3483
 
 pub fn main() {
-  reverse_degree_of_a_string_3498.run()
+  unique_3_digit_even_numbers_3483.run()
 }
