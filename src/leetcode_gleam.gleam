@@ -1,5 +1,5 @@
-import stack/maximum_nesting_depth_of_the_parantheses_1614
+import stack/reverse_substrings_between_each_pair_of_parentheses_1190
 
 pub fn main() {
-  maximum_nesting_depth_of_the_parantheses_1614.run()
+  reverse_substrings_between_each_pair_of_parentheses_1190.run()
 }
